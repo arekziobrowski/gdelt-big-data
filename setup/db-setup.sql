@@ -19,7 +19,9 @@ CREATE OR REPLACE TABLE article (
     country_id INT NOT NULL,
     PRIMARY KEY (id),
     FOREIGN KEY (country_id)
-        REFERENCES country (id)
+        REFERENCES country (id),
+    INDEX (topic),
+    INDEX (date_event)
 );
 
 -- image
@@ -39,7 +41,8 @@ CREATE OR REPLACE TABLE color_metadata (
     r DECIMAL(3) NOT NULL,
     g DECIMAL(3) NOT NULL,
     b DECIMAL(3) NOT NULL,
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
+    INDEX (r, g, b) -- should be added after the initial load of the color_metadata table
 );
 
 -- image_metadata
