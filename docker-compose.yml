@@ -7,5 +7,7 @@ services:
     environment:
       - MYSQL_DATABASE=bd_gdelt
       - MYSQL_ROOT_PASSWORD=root
+    ports:
+      - 8110:3306
     volumes:
      - ~/gdelt-big-data/mariadb:/var/lib/mysql
