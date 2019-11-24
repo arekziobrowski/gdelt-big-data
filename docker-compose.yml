@@ -7,34 +7,5 @@ services:
     environment:
       - MYSQL_DATABASE=bd_gdelt
       - MYSQL_ROOT_PASSWORD=root
-  cloudera:
-    command: /usr/bin/docker-quickstart
-    image: 9fd2df1768e9
-    hostname: quickstart.cloudera #55f5e786f34e 
-    privileged: true
-    ports:
-      - 8061:80
-      - 8062:4040
-      - 8063:8020
-      - 8064:8022
-      - 8065:8030
-      - 8066:8032
-      - 8067:8033
-      - 8068:8040
-      - 8069:8042
-      - 8070:8088
-      - 8071:8480
-      - 8072:8485
-      - 8073:8888
-      - 8074:9083
-      - 8075:10020
-      - 8076:10033
-      - 8077:18088
-      - 8078:19888
-      - 8079:25000
-      - 8080:25010
-      - 8081:25020
-      - 8082:50010
-      - 8083:50020
-      - 8084:50070
-      - 8085:50075
+    volumes:
+     - ${PWD}/mariadb:/var/lib/mysql
