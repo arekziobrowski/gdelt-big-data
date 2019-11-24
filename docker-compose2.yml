@@ -1,0 +1,40 @@
+version: "3.7"
+
+services:
+  maria:
+    image: mariadb:10.4.7
+    command: "--character-set-server=utf8 --collation-server=utf8_unicode_ci"
+    environment:
+      - MYSQL_DATABASE=bd_gdelt
+      - MYSQL_ROOT_PASSWORD=root
+  cloudera:
+    command: /usr/bin/docker-quickstart
+    image: 9fd2df1768e9
+    hostname: quickstart.cloudera #55f5e786f34e 
+    privileged: true
+    ports:
+      - 80:80
+      - 4040:4040
+      - 8020:8020
+      - 8022:8022
+      - 8030:8030
+      - 8032:8032
+      - 8033:8033
+      - 8040:8040
+      - 8042:8042
+      - 8088:8088
+      - 8480:8480
+      - 8485:8485
+      - 8888:8888
+      - 9083:9083
+      - 10020:10020
+      - 10033:10033
+      - 18088:18088
+      - 19888:19888
+      - 25000:25000
+      - 25010:25010
+      - 25020:25020
+      - 50010:50010
+      - 50020:50020
+      - 50070:50070
+      - 50075:50075
