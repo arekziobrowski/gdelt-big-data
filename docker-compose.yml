@@ -8,4 +8,4 @@ services:
       - MYSQL_DATABASE=bd_gdelt
       - MYSQL_ROOT_PASSWORD=root
     volumes:
-     - ${PWD}/mariadb:/var/lib/mysql
+     - ~/gdelt-big-data/mariadb:/var/lib/mysql
