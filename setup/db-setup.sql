@@ -3,7 +3,7 @@ CREATE OR REPLACE TABLE country (
     id INT NOT NULL AUTO_INCREMENT,
     name VARCHAR(255) NOT NULL,
     PRIMARY KEY (id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- article
 CREATE OR REPLACE TABLE article (
@@ -22,7 +22,7 @@ CREATE OR REPLACE TABLE article (
         REFERENCES country (id),
     INDEX (topic),
     INDEX (date_event)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- image
 CREATE OR REPLACE TABLE image (
@@ -33,7 +33,7 @@ CREATE OR REPLACE TABLE image (
     PRIMARY KEY (id),
     FOREIGN KEY (article_id)
         REFERENCES article (id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- color_metadata
 CREATE OR REPLACE TABLE color_metadata (
@@ -43,7 +43,7 @@ CREATE OR REPLACE TABLE color_metadata (
     b DECIMAL(3) NOT NULL,
     PRIMARY KEY (id),
     INDEX (r, g, b) -- should be added after the initial load of the color_metadata table
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- image_metadata
 CREATE OR REPLACE TABLE image_metadata (
@@ -55,7 +55,7 @@ CREATE OR REPLACE TABLE image_metadata (
         REFERENCES image (id),
     FOREIGN KEY (color_metadata_id)
         REFERENCES color_metadata (id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- article_keyword
 CREATE OR REPLACE TABLE article_keyword(
@@ -66,7 +66,7 @@ CREATE OR REPLACE TABLE article_keyword(
     PRIMARY KEY (id),
     FOREIGN KEY (article_id)
         REFERENCES article (id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- country_tone
 CREATE OR REPLACE TABLE country_tone(
@@ -79,4 +79,4 @@ CREATE OR REPLACE TABLE country_tone(
     PRIMARY KEY (id),
     FOREIGN KEY (country_id)
         REFERENCES country (id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
