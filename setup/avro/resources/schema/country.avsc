@@ -1,0 +1,19 @@
+{
+    "namespace": "gdelt-country.avro",
+    "type": "record",
+    "name": "country",
+    "fields": [
+        {
+            "name": "id",
+            "type": "string"
+        },
+        {
+            "name": "name",
+            "type": "string"
+        },
+        {
+            "name": "load_date",
+            "type": "string"
+        }
+    ]
+}
