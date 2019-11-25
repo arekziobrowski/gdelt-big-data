@@ -1,6 +1,12 @@
+# Script for creating /etl directory tree, empty files and sample AVRO files
+
 import os
+import glob
 import subprocess
-# import avro
+
+import avro.schema
+from avro.datafile import DataFileWriter
+from avro.io import DatumWriter
 
 RUN_CONTROL_DATE_LIST = [r"20191123", ]
 SAMPLE_TIME_SLOTS_LIST = [r"120000", r"121500", r"123000"]
@@ -25,11 +31,17 @@ ARTICLE_LOOKUP_DAT = r"article_lookup.dat"
 COLOR_METADATA_DAT = r"color_metadata.dat"
 COUNTRY_DAT = r"country.dat"
 IMAGE_DAT = r"image.dat"
-IMAGE_METADATA = r"image_metadata.dat"
-KEYWORD_METADATA = r"keyword_metadata.dat"
+IMAGE_METADATA_DAT = r"image_metadata.dat"
+KEYWORD_METADATA_DAT = r"keyword_metadata.dat"
 
+# avsc files
+AVSC_SCHEMA_DIR = "./resources/schema"
+COUNTRY_AVSC = os.path.join(AVSC_SCHEMA_DIR, "country.avsc")
+IMAGE_METADATA_AVSC = os.path.join(AVSC_SCHEMA_DIR, "image_metadata.avsc")
 
+# other
 EMPTY_FILE = "tmp"
+TMP_AVRO_DIR = "./tmp_avro"
 
 
 def dir_exists_hdfs(path):
@@ -107,7 +119,8 @@ def create_etl_cleansed_files():
             append_to_file_hdfs(EMPTY_FILE, os.path.join(
                 cleansed_rcd, timeslot_reject))
 
-        append_to_file_hdfs(EMPTY_FILE, os.path.join(cleansed_rcd, ARCITLES_DATA_CLEANSED_DAT))
+        append_to_file_hdfs(EMPTY_FILE, os.path.join(
+            cleansed_rcd, ARCITLES_DATA_CLEANSED_DAT))
 
 
 def create_etl_load_files():
@@ -121,9 +134,10 @@ def create_etl_load_files():
             load_rcd, COLOR_METADATA_DAT))
         append_to_file_hdfs(EMPTY_FILE, os.path.join(load_rcd, COUNTRY_DAT))
         append_to_file_hdfs(EMPTY_FILE, os.path.join(load_rcd, IMAGE_DAT))
-        append_to_file_hdfs(EMPTY_FILE, os.path.join(load_rcd, IMAGE_METADATA))
         append_to_file_hdfs(EMPTY_FILE, os.path.join(
-            load_rcd, KEYWORD_METADATA))
+            load_rcd, IMAGE_METADATA_DAT))
+        append_to_file_hdfs(EMPTY_FILE, os.path.join(
+            load_rcd, KEYWORD_METADATA_DAT))
 
 
 def create_etl_files():
@@ -132,8 +146,61 @@ def create_etl_files():
     create_etl_load_files()
 
 
-def populate_etl():
-    pass
+def populate_country():
+    schema = avro.schema.parse(open(COUNTRY_AVSC, "rb").read())
+
+    writer = DataFileWriter(
+        open("tmp_avro/{0}".format(COUNTRY_DAT), "wb"), DatumWriter(), schema)
+    writer.append({"id": "aaa",
+                   "name": "Poland",
+                   "load_date": "2019-11-12 12:12:12"})
+    writer.append({"id": "bbb",
+                   "name": "Germany",
+                   "load_date": "2019-11-12 12:12:13"})
+
+    writer.close()
+
+    for rcd in RUN_CONTROL_DATE_LIST:
+        load_rcd = os.path.join(LOAD_DIR, rcd)
+        append_to_file_hdfs(
+            "tmp_avro/{0}".format(COUNTRY_DAT), os.path.join(load_rcd, COUNTRY_DAT))
+
+
+def populate_image_metadata():
+    schema = avro.schema.parse(open(IMAGE_METADATA_AVSC, "rb").read())
+
+    writer = DataFileWriter(
+        open("tmp_avro/{0}".format(IMAGE_METADATA_DAT), "wb"), DatumWriter(), schema)
+    writer.append({"image_id": 1,
+                   "count": "1",
+                   "color_id": 1,
+                   "load_date": "2019-11-12 12:12:13"})
+
+    writer.append({"image_id": 1,
+                   "count": "1",
+                   "color_id": 2,
+                   "load_date": "2019-11-12 12:12:14"})
+    writer.close()
+
+    for rcd in RUN_CONTROL_DATE_LIST:
+        load_rcd = os.path.join(LOAD_DIR, rcd)
+        append_to_file_hdfs(
+            "tmp_avro/{0}".format(IMAGE_METADATA_DAT), os.path.join(load_rcd, ARTICLE_DAT))
+
+
+def populate_etl_avro():
+    """
+    Populates chosen files as AVRO files
+    """
+    populate_country()
+    populate_image_metadata()
+
+
+def delete_tmp_files():
+    tmp_avro_files = glob.glob(TMP_AVRO_DIR + "/*.dat")
+    for f in tmp_avro_files:
+        os.remove(f)
+    os.remove(EMPTY_FILE)
 
 
 def main():
@@ -144,7 +211,9 @@ def main():
 
     create_etl_files()
 
-    populate_etl()
+    populate_etl_avro()
+
+    delete_tmp_files()
 
 
 main()

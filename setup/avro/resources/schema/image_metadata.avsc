@@ -1,0 +1,23 @@
+{
+    "namespace": "gdelt-image_metadata.avro",
+    "type": "record",
+    "name": "image_metadata",
+    "fields": [
+        {
+            "name": "image_id",
+            "type": "int"
+        },
+        {
+            "name": "count",
+            "type": "string"
+        },
+        {
+            "name": "color_id",
+            "type": "int"
+        },
+        {
+            "name": "load_date",
+            "type": "string"
+        }
+    ]
+}
