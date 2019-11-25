@@ -1,4 +1,4 @@
-# gdelt-big-data
+# GDELT Big Data Project
 
 ## Przygotowanie
 Przed przystąpieniem do pracy na środowisku należy wykonać konfigurację według poniższych kroków:
