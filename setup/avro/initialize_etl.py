@@ -185,7 +185,7 @@ def populate_image_metadata():
     for rcd in RUN_CONTROL_DATE_LIST:
         load_rcd = os.path.join(LOAD_DIR, rcd)
         append_to_file_hdfs(
-            "tmp_avro/{0}".format(IMAGE_METADATA_DAT), os.path.join(load_rcd, ARTICLE_DAT))
+            "tmp_avro/{0}".format(IMAGE_METADATA_DAT), os.path.join(load_rcd, IMAGE_METADATA_DAT))
 
 
 def populate_etl_avro():

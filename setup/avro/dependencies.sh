@@ -2,6 +2,6 @@
 
 # Script installs necessary dependencies for initialize_etl.py
 
-yum install epel-release
-yum install python-pip
+yum -y install epel-release
+yum -y install python-pip
 pip install avro
