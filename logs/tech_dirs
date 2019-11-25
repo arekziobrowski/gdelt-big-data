@@ -1,0 +1,11 @@
+-rw-r--r--   1 root supergroup          8 2019-11-25 12:49 /tech/RUN_CONTROL_DATE.dat
+drwxr-xr-x   - root supergroup          0 2019-11-25 12:45 /tech/extraction
+drwxr-xr-x   - root supergroup          0 2019-11-25 12:49 /tech/extraction/checkpoint
+drwxr-xr-x   - root supergroup          0 2019-11-25 12:49 /tech/extraction/checkpoint/20191112
+-rw-r--r--   1 root supergroup        164 2019-11-25 12:49 /tech/extraction/checkpoint/20191112/CHECKPOINT-20191112.checkpoint
+drwxr-xr-x   - root supergroup          0 2019-11-25 12:49 /tech/extraction/log
+drwxr-xr-x   - root supergroup          0 2019-11-25 12:49 /tech/extraction/log/20191112
+drwxr-xr-x   - root supergroup          0 2019-11-25 12:45 /tech/load
+drwxr-xr-x   - root supergroup          0 2019-11-25 12:45 /tech/load/log
+drwxr-xr-x   - root supergroup          0 2019-11-25 12:45 /tech/transformation
+drwxr-xr-x   - root supergroup          0 2019-11-25 12:45 /tech/transformation/log
