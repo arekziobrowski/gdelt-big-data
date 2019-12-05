@@ -1,0 +1,7 @@
+version: "3.7"
+
+services:
+  cloudera-quickstart:
+    volumes:
+        - /home/jakub/2sem/big_data/gdelt_volume/:/tmp/gdelt_volume/
+

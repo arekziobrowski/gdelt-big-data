@@ -11,6 +11,8 @@ declare -r GREEN='\033[32m'
 declare -r EXTRACTION_PATH='/tech/extraction'
 declare -r TRANSFORMATION_PATH='/tech/transformation'
 declare -r LOAD_PATH='/tech/load'
+declare -r EXTRACTION_PATH_GDELT='/data/gdelt'
+declare -r EXTRACTION_PATH_DB='/data/db'
 
 function error() {
     echo -e "${RED}${BOLD}${*}${RESET}" >&2
@@ -50,6 +52,9 @@ function main() {
     create_directory $EXTRACTION_PATH/checkpoint $REPLACE
     create_directory $TRANSFORMATION_PATH/log $REPLACE
     create_directory $LOAD_PATH/log $REPLACE
+
+    create_directory $EXTRACTION_PATH_GDELT
+    create_directory $EXTRACTION_PATH_DB
 
     if [ ! -z "$POPULATE" ] ; then
         echo "Populating directories"

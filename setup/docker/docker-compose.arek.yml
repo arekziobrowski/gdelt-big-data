@@ -1,0 +1,7 @@
+version: "3.7"
+
+services:
+  cloudera-quickstart:
+    volumes:
+        - /home/arek/Documents/Mgr/big-data/gdelt-big-data/:/tmp/gdelt-volume
+
