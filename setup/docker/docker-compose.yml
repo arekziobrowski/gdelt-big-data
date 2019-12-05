@@ -16,6 +16,8 @@ services:
     command: /usr/bin/docker-quickstart
     hostname: quickstart.cloudera #55f5e786f34e 
     privileged: true
+    tty: true
+    stdin_open: true
     networks: 
       - gdelt_network
     ports:
