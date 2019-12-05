@@ -1,7 +1,7 @@
 version: "3.7"
 
 services:
-  maria:
+  maria-gdelt:
     image: mariadb:10.4.7
     command: "--character-set-server=utf8 --collation-server=utf8_unicode_ci"
     environment:
@@ -9,7 +9,7 @@ services:
       - MYSQL_ROOT_PASSWORD=root
     networks: 
       - gdelt_network
-  cloudera:
+  cloudera-quickstart:
     build:
       dockerfile: Dockerfile
       context: .
@@ -46,7 +46,7 @@ services:
       - 30194:50020
       - 30195:50070
       - 30196:50075
-  redis:
+  redis-tasks:
     image: redis
     networks:
       - gdelt_network
