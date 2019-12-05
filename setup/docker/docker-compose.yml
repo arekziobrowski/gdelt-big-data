@@ -1,0 +1,54 @@
+version: "3.7"
+
+services:
+  maria:
+    image: mariadb:10.4.7
+    command: "--character-set-server=utf8 --collation-server=utf8_unicode_ci"
+    environment:
+      - MYSQL_DATABASE=bd_gdelt
+      - MYSQL_ROOT_PASSWORD=root
+    networks: 
+      - gdelt_network
+  cloudera:
+    build:
+      dockerfile: Dockerfile
+      context: .
+    command: /usr/bin/docker-quickstart
+    hostname: quickstart.cloudera #55f5e786f34e 
+    privileged: true
+    networks: 
+      - gdelt_network
+    ports:
+      - 30172:80
+      - 30173:4040
+      - 30174:8020
+      - 30175:8022
+      - 30176:8030
+      - 30177:8032
+      - 30178:8033
+      - 30179:8040
+      - 30180:8042
+      - 30181:8088
+      - 30182:8480
+      - 30183:8485
+      - 30184:8888
+      - 30185:9083
+      - 30186:10020
+      - 30187:10033
+      - 30188:18088
+      - 30189:19888
+      - 30190:25000
+      - 30191:25010
+      - 30192:25020
+      - 30193:50010
+      - 30194:50020
+      - 30195:50070
+      - 30196:50075
+  redis:
+    image: redis
+    networks:
+      - gdelt_network
+
+networks:
+  gdelt_network:
+
