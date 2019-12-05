@@ -7,12 +7,21 @@ Przed przystąpieniem do pracy na środowisku należy wykonać konfigurację wed
 3. Wypakowanie ściągniętej paczki: `tar xzfv cloudera-quickstart-vm-5.13.0-0-beta-docker.tar.gz`.
 4. Lokalne zaimportowanie obrazu: `docker import cloudera-quickstart-vm-5.13.0-0-beta-docker.tar`.
 5. Skonfigurowanie pliku Dockerfile, aby wskazywał na `image id` zaimportowanego obrazu.
-6. W katalogu z Dockerfile uruchomić: `sudo docker build -f Dockerfile -t cloudera-quickstart .`.
+6. W katalogu z Dockerfile uruchomić: `sudo docker-compos build`.
 
 ## Uruchamianie obrazu Dockera
 Uruchomienie wszystkich kontenerów:
 ```
 sudo docker-compose -f docker-compose.yml -f docker-compose.<OSOBA>.yml up
+```
+
+Podłączenie się do działającego kontenera z Clouderą:
+```
+sudo docker ps # znalezc hash kontenera
+```
+
+```
+sudo docker attach <hash>
 ```
 
 Uruchomienie wyłącznie kontenera z Clouderą:
@@ -23,7 +32,7 @@ sudo docker run -it  -p 80:80  -p 4040:4040  -p 8020:8020  -p 8022:8022  -p 8030
 ## Przydatne komendy
 Łączenie się z CLI Redisa w celu podglądania statusu kolejki:
 ```
-docker run -it --network gdelt_network --rm redis redis-cli -h redis-tasks
+docker run -it --network docker_gdelt_network --rm redis redis-cli -h redis-tasks
 ```
 
 ## Przydatne linki
