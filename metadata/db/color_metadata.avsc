@@ -1,0 +1,31 @@
+{
+  "type" : "record",
+  "name" : "color_metadata",
+  "doc" : "Sqoop import of color_metadata",
+  "fields" : [ {
+    "name" : "id",
+    "type" : [ "null", "int" ],
+    "default" : null,
+    "columnName" : "id",
+    "sqlType" : "4"
+  }, {
+    "name" : "r",
+    "type" : [ "null", "string" ],
+    "default" : null,
+    "columnName" : "r",
+    "sqlType" : "3"
+  }, {
+    "name" : "g",
+    "type" : [ "null", "string" ],
+    "default" : null,
+    "columnName" : "g",
+    "sqlType" : "3"
+  }, {
+    "name" : "b",
+    "type" : [ "null", "string" ],
+    "default" : null,
+    "columnName" : "b",
+    "sqlType" : "3"
+  } ],
+  "tableName" : "color_metadata"
+}

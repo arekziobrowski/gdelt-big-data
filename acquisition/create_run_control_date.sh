@@ -35,7 +35,7 @@ function main() {
     success "[$(date)] Created $RUN_CONTROL_DATE_PATH!"
 }
 
-while getopts ":hrp" OPT; do
+while getopts ":h" OPT; do
     case ${OPT} in
         h)
             help
