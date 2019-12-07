@@ -1,6 +1,5 @@
 # Change the image id to the quickstart
-# FROM 7a08dc Jakub, # FROM 0897057c8eb6 Arek, # FROM <hash> Zosia
-FROM 0897057c8eb6
+FROM cloudera_base
 COPY setup-python.sh /tmp/setup-python.sh
 RUN /tmp/setup-python.sh
 

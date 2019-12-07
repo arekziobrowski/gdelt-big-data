@@ -5,9 +5,9 @@ Przed przystąpieniem do pracy na środowisku należy wykonać konfigurację wed
 1. Ściagnięcie obrazu Cloudera Quickstart z [oficjalnej strony producenta](https://www.cloudera.com/downloads/quickstart_vms/5-13.html).
 2. Instalacja oprogramowania Docker (opcjonalne). 
 3. Wypakowanie ściągniętej paczki: `tar xzfv cloudera-quickstart-vm-5.13.0-0-beta-docker.tar.gz`.
-4. Lokalne zaimportowanie obrazu: `docker import cloudera-quickstart-vm-5.13.0-0-beta-docker.tar`.
-5. Skonfigurowanie pliku Dockerfile, aby wskazywał na `image id` zaimportowanego obrazu.
-6. W katalogu z Dockerfile uruchomić: `sudo docker-compos build`.
+4. Lokalne zaimportowanie obrazu: `docker import cloudera-quickstart-vm-5.13.0-0-beta-docker.tar` (Na wyjściu otrzymujemy hash obrazu).
+5. `docker tag <HASH> cloudera_base`
+6. W katalogu z Dockerfile uruchomić: `docker-compose build`.
 
 ## Uruchamianie obrazu Dockera
 Uruchomienie wszystkich kontenerów:
@@ -21,7 +21,7 @@ sudo docker ps # znalezc hash kontenera
 ```
 
 ```
-sudo docker attach <hash>
+sudo docker attach <container_id>
 ```
 
 Uruchomienie wyłącznie kontenera z Clouderą:
