@@ -9,6 +9,8 @@ services:
       - MYSQL_ROOT_PASSWORD=root
     networks: 
       - gdelt_network
+    ports:
+      - 13306:3306
   cloudera-quickstart:
     build:
       dockerfile: Dockerfile
