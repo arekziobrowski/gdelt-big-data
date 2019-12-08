@@ -11,12 +11,6 @@ DATA_SUBDIRS = ['csv','api','cameo','reject']
 QUE_NAME = 'CSV_LIST'
 REDIS_URL = 'redis-tasks'
 
-if not hdfs.exists(RUN_CONTROL_PATH):
-    raise Exception('There is not tech file in '+str(RUN_CONTROL_PATH))
-DATE = hdfs.readFileAsString(RUN_CONTROL_PATH)
-if DATE.endswith('\n'):
-    DATE = DATE[:-1]
-
 def assertExist(path):
     if not hdfs.exists(path):
         print("File '"+path+"' does not exist.")
@@ -53,6 +47,12 @@ def assertCAMEOs(path,placeholder):
     TYPES = ['country','type','knowngroup','ethnic','religion','eventcodes']
     for type in TYPES:
         assertExist(path.replace(placeholder,type))
+
+if not hdfs.exists(RUN_CONTROL_PATH):
+    raise Exception('There is not tech file in '+str(RUN_CONTROL_PATH))
+DATE = hdfs.readFileAsString(RUN_CONTROL_PATH)
+if DATE.endswith('\n'):
+    DATE = DATE[:-1]
 
 assertExist(DB_DIR.replace('{DATE}',DATE))
 DATA_DIR = DATA_DIR.replace('{DATE}',DATE)

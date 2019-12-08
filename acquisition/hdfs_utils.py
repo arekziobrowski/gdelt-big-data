@@ -29,6 +29,9 @@ def readFileAsString(path):
     with client.read(path) as reader:
         return reader.read()
 
+def listPath(path):
+    return client.list(path)
+
 def log(path,content,isError):
     prefix = ''
     if isError:

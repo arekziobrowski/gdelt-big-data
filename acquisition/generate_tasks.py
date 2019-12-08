@@ -82,9 +82,12 @@ def downloadAndPersistDictionaries(hdfsPath):
     URL = 'https://www.gdeltproject.org/data/lookups/CAMEO.{type}.txt'
     TYPES = ['country','type','knowngroup','ethnic','religion','eventcodes']
     for type in TYPES:
+        path = hdfsPath+FILE_NAME.replace('{type}',type)
+        if hdfs.exists(path):
+            continue
         cameoResponse = urllib2.urlopen(URL.replace('{type}',type))
         cameoContent = cameoResponse.read()
-        hdfs.write(hdfsPath+FILE_NAME.replace('{type}',type), cameoContent)
+        hdfs.write(path, cameoContent)
 
 
 if not hdfs.exists(RUN_CONTROL_PATH):
