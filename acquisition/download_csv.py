@@ -39,7 +39,7 @@ def readAndPutToHdfs(path,hdfs_path):
     file.close()
 
 def handleTask(TASK,DATE):
-    print("HANDLING: "+TASK)
+    print("HANDLING: "+str(TASK))
     ZIP_FILENAME = TASK[2].split('/')[-1]
 
     zipResponse = urllib2.urlopen(TASK[2])
@@ -74,6 +74,8 @@ def parseTask(task):
 if not hdfs.exists(RUN_CONTROL_PATH):
     raise Exception('There is not tech file in '+str(RUN_CONTROL_PATH))
 DATE = hdfs.readFileAsString(RUN_CONTROL_PATH)
+if DATE.endswith('\n'):
+    DATE = DATE[:-1]
 
 if not hdfs.exists(LOG_PATH):
     hdfs.touch(LOG_PATH)
