@@ -6,11 +6,13 @@ import zipfile
 import hdfs_utils as hdfs
 from os import remove
 
-LOG_PATH = '/tech/acquisition/log/extraction-csv.log'
+LOG_PATH = '/tech/extraction/{DATE}/log/extraction-csv.log'
 REJECT_PATH = '/data/gdelt/{DATE}/reject/csv/'
 ACCEPT_PATH = '/data/gdelt/{DATE}/csv/'
 CHECKPOINT_PATH = '/tech/extraction/{DATE}/checkpoint/CHECKPOINT-{DATE}.checkpoint'
 RUN_CONTROL_PATH = '/tech/RUN_CONTROL_DATE.dat'
+REDIS_URL = 'redis-tasks'
+QUE_NAME = 'CSV_LIST'
 
 def reject(zipContent, fileName,DATE):
     print("REJECT: "+fileName)
@@ -62,6 +64,12 @@ def handleTask(TASK,DATE):
     print("CHECKPOINT: "+HDFS_PATH)
     remove(ZIP_FILENAME)
     remove(CSV_FILENAME)
+
+def parseTask(task):
+    taskList= []
+    for quotedTask in task[1][1:-1].split(', '):
+        taskList.append(quotedTask[1:-1])
+    return taskList
     
 if not hdfs.exists(RUN_CONTROL_PATH):
     raise Exception('There is not tech file in '+str(RUN_CONTROL_PATH))
@@ -71,10 +79,21 @@ if not hdfs.exists(LOG_PATH):
     hdfs.touch(LOG_PATH)
 REJECT_PATH = REJECT_PATH.replace('{DATE}',DATE)
 ACCEPT_PATH = ACCEPT_PATH.replace('{DATE}',DATE)
+LOG_PATH = LOG_PATH.replace('{DATE}',DATE)
 CHECKPOINT_PATH = CHECKPOINT_PATH.replace('{DATE}',DATE)
 
 if not hdfs.exists(CHECKPOINT_PATH):
     hdfs.touch(CHECKPOINT_PATH)
 
-TASK = ['247339', 'c27c74fe937c52c97d865b036dc759d2', 'http://data.gdeltproject.org/gdeltv2/20191207000000.export.CSV.zip']
-handleTask(TASK,DATE)
+que = redis.Redis(host=REDIS_URL,port=6379)
+
+isEmpty = False
+while not isEmpty:
+    task = que.blpop(QUE_NAME,timeout=1)
+    if task == None:
+        isEmpty = True
+        print("EMPTY QUEUE")
+    else:
+        handleTask(parseTask(task),DATE)
+
+que.client_kill_filter(_id=que.client_id())
