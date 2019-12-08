@@ -5,7 +5,7 @@ import redis
 
 RUN_CONTROL_PATH = '/tech/RUN_CONTROL_DATE.dat'
 REDIS_URL = 'redis-tasks'
-CHECKPOINT_PATH = '/tech/extraction/{DATE}/checkpoint/'
+CHECKPOINT_PATH = '/tech/extraction/{DATE}/checkpoint/CHECKPOINT-{DATE}.checkpoint'
 MASTREFILE_URL = 'http://data.gdeltproject.org/gdeltv2/masterfilelist.txt'
 DATA_DIR = '/data/gdelt/{DATE}'
 DB_DIR = '/data/db/{DATE}'
