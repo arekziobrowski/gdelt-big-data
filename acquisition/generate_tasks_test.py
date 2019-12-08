@@ -49,11 +49,17 @@ def getTaskCount():
     que.client_kill_filter(_id=que.client_id())
     return size
 
+def assertCAMEOs(path,placeholder):
+    TYPES = ['country','type','knowngroup','ethnic','religion','eventcodes']
+    for type in TYPES:
+        assertExist(path.replace(placeholder,type))
+
 assertExist(DB_DIR.replace('{DATE}',DATE))
 DATA_DIR = DATA_DIR.replace('{DATE}',DATE)
 assertExist(DATA_DIR)
 for subdir in DATA_SUBDIRS:
     assertExist(DATA_DIR+'/'+subdir)
+assertCAMEOs('/data/gdelt/'+DATE+'/cameo/CAMEO.{type}.txt','{type}')
 
 masterFileCount = getMasterFileCount(DATE)
 print("MasterFile records count:\t"+str(masterFileCount))
