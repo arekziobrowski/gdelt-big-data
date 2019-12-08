@@ -85,7 +85,7 @@ LOG_PATH = LOG_PATH.replace('{DATE}',DATE)
 CHECKPOINT_PATH = CHECKPOINT_PATH.replace('{DATE}',DATE)
 
 if not hdfs.exists(CHECKPOINT_PATH):
-    hdfs.touch(CHECKPOINT_PATH)
+    hdfs.write(CHECKPOINT_PATH,'FINISH_DATE|FILE_LOCATION')
 
 que = redis.Redis(host=REDIS_URL,port=6379)
 
