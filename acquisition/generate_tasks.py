@@ -71,24 +71,12 @@ def generateDirectoriesTree(RUN_CONTROL_DATE, DIR, SUBDIRS):
 def enqueueTasks(TASK_LIST,LIST_NAME):
     que = redis.Redis(host=REDIS_URL,port=6379)
     hdfs.log(LOG_PATH,'Connected to Redis',False)
+    que.delete(LIST_NAME)
     for task in TASK_LIST:
         que.lpush(LIST_NAME,str(task))
         hdfs.log(LOG_PATH,'LeftPushed '+str(task)+' into '+LIST_NAME+' list',False)
     que.client_kill_filter(_id=que.client_id())
     hdfs.log(LOG_PATH,'Disconnected from Redis',False)
-
-def downloadAndPersistDictionaries(hdfsPath):
-    FILE_NAME = 'CAMEO.{type}.txt'
-    URL = 'https://www.gdeltproject.org/data/lookups/CAMEO.{type}.txt'
-    TYPES = ['country','type','knowngroup','ethnic','religion','eventcodes']
-    for type in TYPES:
-        path = hdfsPath+FILE_NAME.replace('{type}',type)
-        if hdfs.exists(path):
-            continue
-        cameoResponse = urllib2.urlopen(URL.replace('{type}',type))
-        cameoContent = cameoResponse.read()
-        hdfs.write(path, cameoContent)
-
 
 if not hdfs.exists(RUN_CONTROL_PATH):
     raise Exception('There is not tech file in '+str(RUN_CONTROL_PATH))
@@ -106,5 +94,3 @@ generateDirectoriesTree(DATE,DB_DIR,[])
  
 NEW_TASKS = getNewTasksList(DATE, CHECKPOINT_PATH, MASTREFILE_URL)
 enqueueTasks(NEW_TASKS, QUE_NAME)
-
-downloadAndPersistDictionaries('/data/gdelt/'+str(DATE)+'/cameo/')

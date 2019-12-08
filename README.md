@@ -35,6 +35,15 @@ sudo docker run -it  -p 80:80  -p 4040:4040  -p 8020:8020  -p 8022:8022  -p 8030
 docker run -it --network docker_gdelt_network --rm redis redis-cli -h redis-tasks
 ```
 
+### Redis
+```
+llen LIST
+LPUSH LIST
+LPOP LIST
+LRANGE LIST 0 -1
+DEL LIST
+```
+
 ## Przydatne linki
 Przydatne linki do stron związanych z ekosystemem Hadoop 2.6.0 dla Cloudery 5.13:
 * [Dokumentacja HDFS dla Hadoopa 2.6.0](https://hadoop.apache.org/docs/r2.6.0/hadoop-project-dist/hadoop-common/FileSystemShell.html)

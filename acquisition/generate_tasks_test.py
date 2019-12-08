@@ -18,6 +18,8 @@ def assertExist(path):
         print("'{}'\t\tOK".format(path))
 
 def getCheckpointCount(path):
+    if not hdfs.exists(path):
+        return 0
     checkpointFileContent = hdfs.readFileAsString(path)
     counter = 0
     for line in checkpointFileContent.split('\n')[1:]:

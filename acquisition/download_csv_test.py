@@ -1,10 +1,12 @@
 import hdfs_utils as hdfs
+import urllib2
 import redis
 
 RUN_CONTROL_PATH = '/tech/RUN_CONTROL_DATE.dat'
 QUE_NAME = 'CSV_LIST'
 REDIS_URL = 'redis-tasks'
 RELIGION_DICT_PATH = '/data/gdelt/{DATE}/cameo/CAMEO.religion.txt'
+MASTREFILE_URL = 'http://data.gdeltproject.org/gdeltv2/masterfilelist.txt'
 
 RELIGION_DICTIONARY = u'''CODE\tLABEL\r
 ADR\tAfrican Diasporic Religion\r
@@ -41,6 +43,16 @@ ZRO\tZoroastrianism\r
 
 '''
 
+def getMasterFileCount(date):
+    EXPORT_FILE_SUFFIX_MASTER_FILE = '.export.CSV.zip'
+    masterFileReseponse = urllib2.urlopen(MASTREFILE_URL)
+    masterFile = masterFileReseponse.read()
+    counter = 0
+    for line in masterFile.split('\n'):
+        if line.endswith(EXPORT_FILE_SUFFIX_MASTER_FILE) and  date in line.split(' ')[2]:
+            counter= counter+1
+
+    return counter
 
 def getTaskCount():
     que = redis.Redis(host=REDIS_URL,port=6379)
@@ -66,8 +78,10 @@ if not getTaskCount() == 0:
 else:
     print("Taskqueue\t\tOK")
 
-if not getCsvCount('/data/gdelt/'+DATE+'/csv/',DATE,'.export.csv') == 24*4:
-    print("Not enough CSV files. There should be {} files inside /data/gdelt/{}/csv/ dir.".format(24*4,DATE))
+masterFileCount = getMasterFileCount(DATE)
+csvCount = getCsvCount('/data/gdelt/'+DATE+'/csv/',DATE,'.export.csv')
+if not csvCount == masterFileCount:
+    print("Not enough CSV files. There should be {} files inside /data/gdelt/{}/csv/ dir instead of {}.".format(masterFileCount,DATE,csvCount))
 else:
     print("#CSV files\t\tOK")
 
