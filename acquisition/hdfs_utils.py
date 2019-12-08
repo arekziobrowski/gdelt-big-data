@@ -35,6 +35,6 @@ def log(path,content,isError):
         prefix = '[ERROR]'
     else:
         prefix = '[INFO]'
-    log = prefix+'['+str(datetime.datetime.now())+']'+content
+    log = prefix+'['+str(datetime.datetime.now())+'] '+content
     print('LOG: '+ log)
     append(path,log)
