@@ -95,7 +95,7 @@ if DATE.endswith('\n'):
 
 LOG_PATH = LOG_PATH.replace('{DATE}',DATE)
 hdfs.mkdir(LOG_PATH)
-LOG_PATH = LOG_PATH +'/extraction-api.log'
+LOG_PATH = LOG_PATH +'/extraction-csv.log'
 if not hdfs.exists(LOG_PATH):
     hdfs.touch(LOG_PATH)
 generateDirectoriesTree(DATE, DATA_DIR,DATA_SUBDIRS)
