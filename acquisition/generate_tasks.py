@@ -10,7 +10,7 @@ MASTREFILE_URL = 'http://data.gdeltproject.org/gdeltv2/masterfilelist.txt'
 DATA_DIR = '/data/gdelt/{DATE}'
 DB_DIR = '/data/db/{DATE}'
 DATA_SUBDIRS = ['csv','api','cameo','reject']
-LOG_PATH = '/tech/acquisition/log'
+LOG_PATH = '/tech/extraction/{DATE}/log/'
 QUE_NAME = 'CSV_LIST'
 
 def getCheckpointsList(path,RUN_CONTROL_DATE):
@@ -91,8 +91,9 @@ if not hdfs.exists(RUN_CONTROL_PATH):
     raise Exception('There is not tech file in '+str(RUN_CONTROL_PATH))
 DATE = hdfs.readFileAsString(RUN_CONTROL_PATH)
 
+LOG_PATH = LOG_PATH.replace('{DATE}',DATE)
 hdfs.mkdir(LOG_PATH)
-LOG_PATH = LOG_PATH +'/acquisition_logs'
+LOG_PATH = LOG_PATH +'extraction-api.log'
 if not hdfs.exists(LOG_PATH):
     hdfs.touch(LOG_PATH)
 generateDirectoriesTree(DATE, DATA_DIR,DATA_SUBDIRS)
