@@ -41,8 +41,8 @@ CREATE OR REPLACE TABLE color_metadata (
     r DECIMAL(3) NOT NULL,
     g DECIMAL(3) NOT NULL,
     b DECIMAL(3) NOT NULL,
-    PRIMARY KEY (id),
-    INDEX (r, g, b) -- should be added after the initial load of the color_metadata table
+    PRIMARY KEY (id)
+    #INDEX (r, g, b) -- should be added after the initial load of the color_metadata table
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- image_metadata
