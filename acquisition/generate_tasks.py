@@ -12,7 +12,7 @@ MASTREFILE_URL = 'http://data.gdeltproject.org/gdeltv2/masterfilelist.txt'
 DATA_DIR = '/data/gdelt/{DATE}'
 DB_DIR = '/data/db/{DATE}'
 DATA_SUBDIRS = ['csv','api','cameo','reject']
-LOG_PATH = '/tech/acquisition/logs'
+LOG_PATH = '/tech/acquisition/log'
 QUE_NAME = 'CSV_LIST'
 
 def exists(path):
@@ -28,9 +28,14 @@ def touch(path):
         writer.write('')
 
 def append(path,data):
+    print('APPEND: '+path)
     with client.write(path,append=True) as writer:
         writer.write(data+'\n')
-    print(path,data)
+
+def write(path,data):
+    print('WRITE: '+path)
+    with client.write(path) as writer:
+        writer.write(data+'\n')
 
 def readFileAsString(path):
     with client.read(path) as reader:
@@ -110,6 +115,16 @@ def enqueueTasks(TASK_LIST,LIST_NAME):
     que.client_kill_filter(_id=que.client_id())
     log(LOG_PATH,'Disconnected from Redis',False)
 
+def downloadAndPersistDictionaries(hdfsPath):
+    FILE_NAME = 'CAMEO.{type}.txt'
+    URL = 'https://www.gdeltproject.org/data/lookups/CAMEO.{type}.txt'
+    TYPES = ['country','type','knowngroup','ethnic','religion','eventcodes']
+    for type in TYPES:
+        cameoResponse = urllib2.urlopen(URL.replace('{type}',type))
+        cameoContent = cameoResponse.read()
+        write(hdfsPath+FILE_NAME.replace('{type}',type), cameoContent)
+
+
 if not exists(RUN_CONTROL_PATH):
     raise Exception('There is not tech file in '+str(RUN_CONTROL_PATH))
 DATE = readFileAsString(RUN_CONTROL_PATH)
@@ -123,3 +138,5 @@ generateDirectoriesTree(DATE,DB_DIR,[])
  
 NEW_TASKS = getNewTasksList(DATE, CHECKPOINT_PATH, MASTREFILE_URL)
 enqueueTasks(NEW_TASKS, QUE_NAME)
+
+downloadAndPersistDictionaries('/data/gdelt/'+str(DATE)+'/cameo/')
