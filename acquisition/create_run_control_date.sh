@@ -24,7 +24,7 @@ function help() {
 }
 
 function main() {
-    hdfs dfs -test -d $RUN_CONTROL_DATE_PATH
+    hdfs dfs -test -e $RUN_CONTROL_DATE_PATH
     if [ $? != 0 ] ; then
         echo "[$(date)] Creating $RUN_CONTROL_DATE_PATH" >&2
         printf "$(date '+%Y%m%d')" | hdfs dfs -appendToFile - $RUN_CONTROL_DATE_PATH
