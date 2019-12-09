@@ -2,7 +2,7 @@
 # and creates directory/file hierarchy for an acquisition for a RUN_CONTROL_DATE.
 #
 # Preconditions - tasks to be scheduled are selected based on:
-#  - /tech/RUN_CONTROL_DATE.dat file
+#  - valid /tech/RUN_CONTROL_DATE.dat file
 #  - /tech/extraction/{RUN_CONTROL_DATE}/checkpoint/CHECKPOINT-{RUN_CONTROL_DATE}.checkpoint file
 #
 # Usage:

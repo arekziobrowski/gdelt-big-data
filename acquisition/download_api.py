@@ -3,6 +3,13 @@
 #
 # INTERVAL parameter is start time and end time (HHMMSS) connected by a dash.
 # Example: 120000-123000
+#
+# Preconditions:
+#  - valid /tech/RUN_CONTROL_DATE.dat file
+#  - running generate_tasks_api.py script
+#
+# Usage:
+# python2.7 generate_tasks_api.py
 
 
 import os
