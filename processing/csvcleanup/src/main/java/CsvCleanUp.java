@@ -12,8 +12,6 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import java.net.URI;
 
 public class CsvCleanUp {
-    //    private static final String IN_PATH = "/home/jakub/2sem/big_data/20191024143000.export.CSV";
-//    private static final String OUT_PATH = "/home/jakub/2sem/big_data/out";
     private static final String IN_PATH = "/data/gdelt/{RUN_CONTROL_DATE}/csv/";
     private static final String OUT_PATH = "/etl/staging/cleansed/{RUN_CONTROL_DATE}/";
     private static final String CAMEO_PATH = "/data/gdelt/{RUN_CONTROL_DATE}/cameo/CAMEO.country.txt";

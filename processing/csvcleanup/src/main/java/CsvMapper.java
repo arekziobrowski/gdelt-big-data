@@ -15,7 +15,8 @@ public class CsvMapper extends Mapper<LongWritable, Text, Text, Text> {
 
     @Override
     protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
-        context.setStatus("Mapper counter: " + Integer.toString(counter));
+        if(counter % 50 == 0)
+            context.setStatus("Mapper counter: " + Integer.toString(counter));
         final String[] lineSplitted = value.toString().split("\t");
         counter++;
 
