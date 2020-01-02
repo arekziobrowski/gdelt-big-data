@@ -11,7 +11,7 @@ if DATE.endswith('\n'):
 
 FILE_NAME = 'CAMEO.{type}.txt'
 URL = 'https://www.gdeltproject.org/data/lookups/CAMEO.{type}.txt'
-TYPES = ['country','type','knowngroup','ethnic','religion','eventcodes']
+TYPES = ['type','knowngroup','ethnic','religion','eventcodes']
 hdfsPath = '/data/gdelt/'+str(DATE)+'/cameo/'
 for type in TYPES:
     path = hdfsPath+FILE_NAME.replace('{type}',type)
@@ -20,3 +20,19 @@ for type in TYPES:
     cameoResponse = urllib2.urlopen(URL.replace('{type}',type))
     cameoContent = cameoResponse.read()
     hdfs.write(path, cameoContent)
+
+def getCountries():
+    URL = 'https://raw.githubusercontent.com/mysociety/gaze/master/data/fips-10-4-to-iso-country-codes.csv'
+    path = hdfsPath+FILE_NAME.replace('{type}','country')
+    if hdfs.exists(path):
+        return
+    cameoResponse = urllib2.urlopen(URL)
+    cameoContent = cameoResponse.read()
+    countries = []
+    for line in cameoContent.split('\n')[1:]:
+        splitted = line.split(',')
+        if len(splitted) == 3:
+            countries.append(splitted[0]+'\t'+splitted[2])
+    hdfs.write(path, '\n'.join(countries))
+
+getCountries()
