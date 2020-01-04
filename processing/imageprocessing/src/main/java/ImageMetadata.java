@@ -1,8 +1,9 @@
 import java.awt.*;
+import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Date;
 
-public class ImageMetadata {
+public class ImageMetadata implements Serializable {
 
     private Integer count;
     private Color c;
@@ -10,15 +11,16 @@ public class ImageMetadata {
     private Integer imageId;
     private Date loadDate;
 
-    public ImageMetadata() {
-    }
-
-    public ImageMetadata(Integer count, Color color, Integer colorId, Integer imageId, Date loadDate) {
-        this.count = count;
+    public ImageMetadata(Color color, Integer colorId, Integer imageId, Date loadDate) {
+        this.count = 1;
         this.c = color;
         this.colorId = colorId;
         this.imageId = imageId;
         this.loadDate = loadDate;
+    }
+
+    public void incrementCount() {
+        this.count++;
     }
 
     public Integer getCount() {

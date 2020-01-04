@@ -3,9 +3,6 @@ import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.FlatMapFunction;
-import org.apache.spark.api.java.function.Function;
-import org.apache.spark.input.PortableDataStream;
-import org.apache.tika.Tika;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -13,10 +10,8 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.sql.Timestamp;
 import java.util.*;
-import java.util.List;
+
 
 
 public class ImagePixelProcessor {
@@ -33,45 +28,37 @@ public class ImagePixelProcessor {
         //
         // Map List of ImageMetadata
         // Map List of articles
-        final Tika tika = new Tika();
-
 
         JavaRDD<String> paths = sc.parallelize(Arrays.asList("src/main/resources/test"));
         JavaRDD<ImageMetadata> ims = paths.flatMap(new FlatMapFunction<String, ImageMetadata>() {
             @Override
             public Iterable<ImageMetadata> call(String s) throws Exception {
-                String mimeType = tika.detect(new File(s));
+                HashMap<Color, ImageMetadata> colorMap = new HashMap<>();
+                BufferedImage image = ImageIO.read(new File(s));
 
-                return null;
+                if (image != null) {
+                    for (int x = 0; x < image.getWidth(); x++) {
+                        for (int y = 0; y < image.getHeight(); y++) {
+                            Color c = new Color(image.getRGB(x, y));
+                            if (colorMap.containsKey(c)) {
+                                colorMap.get(c).incrementCount();
+                            }
+                            else {
+                                colorMap.put(c, new ImageMetadata(c, 1, 1, new Date()));
+                            }
+                        }
+                    }
+                }
+
+                return colorMap.values();
             }
         });
 
         for (ImageMetadata i : ims.collect()) {
             Color c = i.getC();
-            System.out.println("R:" + c.getRed() + ", G: " + c.getGreen() + ", B: " + c.getBlue());
+            System.out.println("R:" + c.getRed() + ", G: " + c.getGreen() + ", B: " + c.getBlue() + ", count: " + i.getCount());
         }
-        /*JavaRDD<ImageMetadata> imageMetadataRDD = image.values().map(new Function<PortableDataStream, ImageMetadata>() {
-            @Override
-            public ImageMetadata call(PortableDataStream portableDataStream) throws Exception {
-                BufferedImage bufferedImage = createImageFromBytes(portableDataStream.toArray());
 
-                for (int x = 0; x < bufferedImage.getWidth(); x++) {
-                    for (int y = 0; y < bufferedImage.getHeight(); y++) {
-                        Color c = new Color(bufferedImage.getRGB(x, y));
-                        return new ImageMetadata(1, c, 1, 1, new Date());
-                    }
-                }
-
-                return null;
-            }
-        });*/
-
-        /*for (ImageMetadata i : imageMetadataRDD.collect()) {
-            Color c = i.getC();
-            System.out.println("R:" + c.getRed() + ", G: " + c.getGreen() + ", B: " + c.getBlue());
-        }*/
-
-        //System.out.println(image);
     }
 
     private static BufferedImage createImageFromBytes(byte[] imageData) {
