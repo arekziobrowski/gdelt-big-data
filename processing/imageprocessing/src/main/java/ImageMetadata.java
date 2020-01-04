@@ -17,6 +17,26 @@ public class ImageMetadata implements Serializable {
         this.loadDate = loadDate;
     }
 
+    public void setCount(Integer count) {
+        this.count = count;
+    }
+
+    public void setC(Color c) {
+        this.c = c;
+    }
+
+    public void setColorId(Integer colorId) {
+        this.colorId = colorId;
+    }
+
+    public void setImageId(Integer imageId) {
+        this.imageId = imageId;
+    }
+
+    public void setLoadDate(Date loadDate) {
+        this.loadDate = loadDate;
+    }
+
     public void incrementCount() {
         this.count++;
     }

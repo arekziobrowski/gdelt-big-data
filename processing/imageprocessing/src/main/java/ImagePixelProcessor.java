@@ -3,6 +3,7 @@ import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.FlatMapFunction;
+import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.PairFlatMapFunction;
 import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.broadcast.Broadcast;
@@ -38,13 +39,11 @@ public class ImagePixelProcessor {
             }
         });
 
-        final Broadcast<Map<Color, Integer>> b = sc.broadcast(lookupColor.collectAsMap());
-
 
         JavaRDD<String> paths = sc.parallelize(Arrays.asList("src/main/resources/test"));
-        JavaRDD<ImageMetadata> ims = paths.flatMap(new FlatMapFunction<String, ImageMetadata>() {
+        JavaPairRDD<Color, ImageMetadata> ims = paths.flatMapToPair(new PairFlatMapFunction<String, Color, ImageMetadata>() {
             @Override
-            public Iterable<ImageMetadata> call(String s) throws Exception {
+            public Iterable<Tuple2<Color, ImageMetadata>> call(String s) throws Exception {
                 HashMap<Color, ImageMetadata> colorMap = new HashMap<>();
                 BufferedImage image = ImageIO.read(new File(s));
 
@@ -57,28 +56,47 @@ public class ImagePixelProcessor {
                             int blue = color & 0x000000ff;
                             Color c = new Color(red, green, blue);
 
-                            Integer id = b.value().get(c);
-
                             if (colorMap.containsKey(c)) {
                                 colorMap.get(c).incrementCount();
                             }
                             else {
-                                colorMap.put(c, new ImageMetadata(c, id, 1, new Date()));
+                                colorMap.put(c, new ImageMetadata(c, null, null, new Date()));
                             }
                         }
                     }
                 }
-                return colorMap.values();
+                List<Tuple2<Color, ImageMetadata>> out = new ArrayList<>();
+
+                for (Color c : colorMap.keySet()) {
+                    out.add(new Tuple2<>(c, colorMap.get(c)));
+                }
+                return out;
             }
         });
 
+        JavaRDD<ImageMetadata> output =
+                ims
+                .join(lookupColor)
+                .map(new Function<Tuple2<Color, Tuple2<ImageMetadata, Integer>>, ImageMetadata>() {
+                    @Override
+                    public ImageMetadata call(Tuple2<Color, Tuple2<ImageMetadata, Integer>> colorTuple2Tuple2) throws Exception {
+                        ImageMetadata i = colorTuple2Tuple2._2._1;
+                        i.setColorId(colorTuple2Tuple2._2._2);
+                        return i;
+                    }
+                });
 
 
-        for (ImageMetadata i : ims.collect()) {
+        for (ImageMetadata i : output.collect()) {
+            System.out.println("ID: " + i.getColorId());
+        }
+
+        /*for (Tuple2<Color, ImageMetadata> tuple : ims.collect()) {
             //Color c = i.getC();
+            ImageMetadata i = tuple._2;
             System.out.println("ID: " + i.getColorId());
             //System.out.println("R:" + c.getR() + ", G: " + c.getG() + ", B: " + c.getB() + ", count: " + i.getCount());
-        }
+        }*/
 
     }
 }
