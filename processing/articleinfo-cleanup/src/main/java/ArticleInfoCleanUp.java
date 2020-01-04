@@ -113,12 +113,11 @@ public class ArticleInfoCleanUp {
 
     private static void renameOutputFiles(String outputPath, Configuration hadoopConfiguration, String newPrefix) throws IOException {
         FileSystem fileSystem = FileSystem.get(hadoopConfiguration);
+        log("Renaming files to common prefix: " + newPrefix,fileSystem);
         FileStatus[] partFileStatuses = fileSystem.globStatus(new Path(outputPath + "part*"));
         for (FileStatus fs : partFileStatuses) {
             String name = fs.getPath().getName();
-            String newName = outputPath + newPrefix + name;
-            log("Renaming output file to: " + newName, fileSystem);
-            fileSystem.rename(new Path(outputPath + name), new Path(newName));
+            fileSystem.rename(new Path(outputPath + name), new Path(outputPath + newPrefix + name));
         }
         log("Done renaming", fileSystem);
         fileSystem.close();
