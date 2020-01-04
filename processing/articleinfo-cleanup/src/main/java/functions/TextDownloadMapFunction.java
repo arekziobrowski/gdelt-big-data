@@ -25,7 +25,7 @@ public class TextDownloadMapFunction implements PairFunction<JsonEntry, JsonEntr
         String content = "";
         try {
             URL url = new URL(v1.getUrl());
-            CUrl curl = new CUrl(v1.getUrl()).timeout(0.5f, 1.0f);
+            CUrl curl = new CUrl(v1.getUrl()).timeout(1.5f, 1.5f);
             byte[] z = curl.exec();
             InputStream is = new ByteArrayInputStream(z);
 
@@ -33,7 +33,7 @@ public class TextDownloadMapFunction implements PairFunction<JsonEntry, JsonEntr
             content = articleExtractor.getText(new InputStreamReader(is));
             if (content.length() != 0) {
                 System.out.println(content.length());
-                v1.withArticlePath(prefixPath + MD5Hash.digest(v1.getTitle().getBytes()).toString());
+                v1.withArticlePath(prefixPath + MD5Hash.digest(v1.getUrl().getBytes()).toString());
             }
         } catch (MalformedURLException ex) {
             System.out.println("Invalid URL: " + v1.getUrl());

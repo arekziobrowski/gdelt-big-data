@@ -1,9 +1,9 @@
-import de.l3s.boilerpipe.BoilerpipeProcessingException;
 import functions.ImageDownloadMapFunction;
 import functions.JsonEntryProcessedMapFunction;
 import functions.RowToJsonEntryFlatMapFunction;
 import functions.TextDownloadMapFunction;
 import model.JsonEntry;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -23,21 +23,33 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 public class ArticleInfoCleanUp {
-    private final static String INPUT_FILE = "/home/jakub/2sem/big_data/gdelt-big-data/processing/articleinfo-cleanup/example.json";
-    private final static String OUT_DIR = "/home/jakub/2sem/big-data/out_temp_1/csv/";
-    private final static String OUT_DIR_ARTICLES = "/home/jakub/2sem/big-data/out_temp_1/articles/";
-    private final static String OUT_DIR_IMAGES = "/home/jakub/2sem/big-data/out_temp_1/images/";
+    private static String INPUT_FILE = "/data/gdelt/{RUN_CONTROL_DATE}/api/*/article_info.json";
+    private static String OUT_DIR = "/etl/staging/cleansed/{RUN_CONTROL_DATE}/api/articles-api-info-cleansed.dat";
+    private static String OUT_DIR_ARTICLES = "/etl/staging/cleansed/{RUN_CONTROL_DATE}/texts/";
+    private static String OUT_DIR_IMAGES = "/etl/staging/cleansed/{RUN_CONTROL_DATE}/images/";
     private final static String OUTPUT_FILES_PREFIX = "articles-api-info-cleansed.dat-";
 
 
-    public static void main(String[] args) throws BoilerpipeProcessingException, IOException {
+    public static void main(String[] args) throws IOException {
+        if (args.length == 0 || !args[0].matches("[0-9]{8}")) {
+            System.err.println("Provide RUN_CONTROL_DATE with args[].");
+            System.exit(2);
+        }
+        final String RUN_CONTROL_DATE = args[0];
+        INPUT_FILE = INPUT_FILE.replace("{RUN_CONTROL_DATE}", RUN_CONTROL_DATE);
+        OUT_DIR = OUT_DIR.replace("{RUN_CONTROL_DATE}", RUN_CONTROL_DATE);
+        OUT_DIR_ARTICLES = OUT_DIR_ARTICLES.replace("{RUN_CONTROL_DATE}", RUN_CONTROL_DATE);
+        OUT_DIR_IMAGES = OUT_DIR_IMAGES.replace("{RUN_CONTROL_DATE}", RUN_CONTROL_DATE);
+
         SparkConf conf = new SparkConf().setMaster("local").setAppName("article-info.json Clean-Up");
         JavaSparkContext sc = new JavaSparkContext(conf);
-        FileSystem fileSystem = FileSystem.get(sc.hadoopConfiguration());
+        Configuration hadoopConfiguration = sc.hadoopConfiguration();
 
+        FileSystem fileSystem = FileSystem.get(sc.hadoopConfiguration());
         fileSystem.delete(new Path(OUT_DIR), true);
         fileSystem.delete(new Path(OUT_DIR_ARTICLES), true);
         fileSystem.delete(new Path(OUT_DIR_IMAGES), true);
+        fileSystem.close();
 
         JavaRDD<String> jsonExampleData = sc.textFile(INPUT_FILE).cache();
         SQLContext sqlContext = new SQLContext(sc);
@@ -46,7 +58,7 @@ public class ArticleInfoCleanUp {
                 .filter(new UrlAndSocialImageNotEmptyFilter())
                 .mapToPair(new TextDownloadMapFunction(OUT_DIR_ARTICLES))
                 .filter(new ArticleContentNotEmptyFilter()).cache();
-        saveArticles(entriesWithArticles.collect(), fileSystem);
+        saveArticles(entriesWithArticles.collect(), hadoopConfiguration);
 
         final JavaPairRDD<JsonEntry, byte[]> entriesWithImages = entriesWithArticles
                 .map(new Function<Tuple2<JsonEntry, String>, JsonEntry>() {
@@ -56,7 +68,7 @@ public class ArticleInfoCleanUp {
                     }
                 }).mapToPair(new ImageDownloadMapFunction(OUT_DIR_IMAGES, 5))
                 .filter(new ImageContentNotEmptyFilter()).cache();
-        saveImages(entriesWithImages.collect(), fileSystem);
+        saveImages(entriesWithImages.collect(), hadoopConfiguration);
 
         entriesWithImages
                 .map(new Function<Tuple2<JsonEntry, byte[]>, JsonEntry>() {
@@ -66,33 +78,42 @@ public class ArticleInfoCleanUp {
                     }
                 }).map(new JsonEntryProcessedMapFunction()).saveAsTextFile(OUT_DIR);
 
-        renameOutputFiles(OUT_DIR, fileSystem, OUTPUT_FILES_PREFIX);
+        renameOutputFiles(OUT_DIR, hadoopConfiguration, OUTPUT_FILES_PREFIX);
     }
 
-    private static void saveArticles(List<Tuple2<JsonEntry, String>> articles, FileSystem fileSystem) throws IOException {
+    private static void saveArticles(List<Tuple2<JsonEntry, String>> articles, Configuration hadoopConfiguration) throws IOException {
+        FileSystem fileSystem = FileSystem.get(hadoopConfiguration);
         for (Tuple2<JsonEntry, String> a : articles) {
             FSDataOutputStream fsDataOutputStream = fileSystem.create(new Path(a._1().getArticlePath()));
             BufferedOutputStream os = new BufferedOutputStream(fsDataOutputStream);
             os.write(a._2().getBytes(StandardCharsets.UTF_8));
             os.close();
+            fsDataOutputStream.close();
         }
+        fileSystem.close();
     }
 
-    private static void saveImages(List<Tuple2<JsonEntry, byte[]>> images, FileSystem fileSystem) throws IOException {
+    private static void saveImages(List<Tuple2<JsonEntry, byte[]>> images, Configuration hadoopConfiguration) throws IOException {
+        FileSystem fileSystem = FileSystem.get(hadoopConfiguration);
         for (Tuple2<JsonEntry, byte[]> i : images) {
             FSDataOutputStream fsDataOutputStream = fileSystem.create(new Path(i._1().getImagePath()));
             BufferedOutputStream os = new BufferedOutputStream(fsDataOutputStream);
             os.write(i._2());
             os.close();
+            fsDataOutputStream.close();
         }
+        fileSystem.close();
+
     }
 
-    private static void renameOutputFiles(String outputPath, FileSystem fileSystem, String newPrefix) throws IOException {
+    private static void renameOutputFiles(String outputPath, Configuration hadoopConfiguration, String newPrefix) throws IOException {
+        FileSystem fileSystem = FileSystem.get(hadoopConfiguration);
         FileStatus[] partFileStatuses = fileSystem.globStatus(new Path(outputPath + "part*"));
         for (FileStatus fs : partFileStatuses) {
             String name = fs.getPath().getName();
             fileSystem.rename(new Path(outputPath + name), new Path(outputPath + newPrefix + name));
         }
+        fileSystem.close();
     }
 
     static class UrlAndSocialImageNotEmptyFilter implements Function<JsonEntry, Boolean> {
