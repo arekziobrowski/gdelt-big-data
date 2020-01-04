@@ -1,6 +1,4 @@
-import java.awt.*;
 import java.io.Serializable;
-import java.sql.Timestamp;
 import java.util.Date;
 
 public class ImageMetadata implements Serializable {
