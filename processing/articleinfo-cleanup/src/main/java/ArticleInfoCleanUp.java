@@ -20,6 +20,7 @@ import scala.Tuple2;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Date;
 import java.util.List;
 
 public class ArticleInfoCleanUp {
@@ -27,8 +28,8 @@ public class ArticleInfoCleanUp {
     private static String OUT_DIR = "/etl/staging/cleansed/{RUN_CONTROL_DATE}/api/articles-api-info-cleansed.dat";
     private static String OUT_DIR_ARTICLES = "/etl/staging/cleansed/{RUN_CONTROL_DATE}/texts/";
     private static String OUT_DIR_IMAGES = "/etl/staging/cleansed/{RUN_CONTROL_DATE}/images/";
+    private final static String LOG_FILE = "/tech/transformation/log/articles-api-info-cleansed.log";
     private final static String OUTPUT_FILES_PREFIX = "articles-api-info-cleansed.dat-";
-
 
     public static void main(String[] args) throws IOException {
         if (args.length == 0 || !args[0].matches("[0-9]{8}")) {
@@ -41,11 +42,13 @@ public class ArticleInfoCleanUp {
         OUT_DIR_ARTICLES = OUT_DIR_ARTICLES.replace("{RUN_CONTROL_DATE}", RUN_CONTROL_DATE);
         OUT_DIR_IMAGES = OUT_DIR_IMAGES.replace("{RUN_CONTROL_DATE}", RUN_CONTROL_DATE);
 
-        SparkConf conf = new SparkConf().setMaster("local").setAppName("article-info.json Clean-Up");
+        SparkConf conf = new SparkConf().setAppName("article-info.json Clean-Up");
         JavaSparkContext sc = new JavaSparkContext(conf);
         Configuration hadoopConfiguration = sc.hadoopConfiguration();
 
         FileSystem fileSystem = FileSystem.get(sc.hadoopConfiguration());
+        if (!fileSystem.exists(new Path(LOG_FILE)))
+            fileSystem.create(new Path(LOG_FILE));
         fileSystem.delete(new Path(OUT_DIR), true);
         fileSystem.delete(new Path(OUT_DIR_ARTICLES), true);
         fileSystem.delete(new Path(OUT_DIR_IMAGES), true);
@@ -84,6 +87,7 @@ public class ArticleInfoCleanUp {
     private static void saveArticles(List<Tuple2<JsonEntry, String>> articles, Configuration hadoopConfiguration) throws IOException {
         FileSystem fileSystem = FileSystem.get(hadoopConfiguration);
         for (Tuple2<JsonEntry, String> a : articles) {
+            log("Saving new article to: " + a._1().getArticlePath(), fileSystem);
             FSDataOutputStream fsDataOutputStream = fileSystem.create(new Path(a._1().getArticlePath()));
             BufferedOutputStream os = new BufferedOutputStream(fsDataOutputStream);
             os.write(a._2().getBytes(StandardCharsets.UTF_8));
@@ -96,6 +100,7 @@ public class ArticleInfoCleanUp {
     private static void saveImages(List<Tuple2<JsonEntry, byte[]>> images, Configuration hadoopConfiguration) throws IOException {
         FileSystem fileSystem = FileSystem.get(hadoopConfiguration);
         for (Tuple2<JsonEntry, byte[]> i : images) {
+            log("Saving new image to: " + i._1().getImagePath(), fileSystem);
             FSDataOutputStream fsDataOutputStream = fileSystem.create(new Path(i._1().getImagePath()));
             BufferedOutputStream os = new BufferedOutputStream(fsDataOutputStream);
             os.write(i._2());
@@ -111,9 +116,22 @@ public class ArticleInfoCleanUp {
         FileStatus[] partFileStatuses = fileSystem.globStatus(new Path(outputPath + "part*"));
         for (FileStatus fs : partFileStatuses) {
             String name = fs.getPath().getName();
-            fileSystem.rename(new Path(outputPath + name), new Path(outputPath + newPrefix + name));
+            String newName = outputPath + newPrefix + name;
+            log("Renaming output file to: " + newName, fileSystem);
+            fileSystem.rename(new Path(outputPath + name), new Path(newName));
         }
+        log("Done renaming", fileSystem);
         fileSystem.close();
+    }
+
+    private static void log(String logMessage, FileSystem fileSystem) throws IOException {
+        String logLine = "ArticleInfoCleanUp | " + new Date().toString() + " | " + logMessage + '\n';
+        System.out.print(logLine);
+        FSDataOutputStream fsAppendStream = fileSystem.append(new Path(LOG_FILE));
+        BufferedOutputStream appendStream = new BufferedOutputStream(fsAppendStream);
+        appendStream.write(logLine.getBytes(StandardCharsets.UTF_8));
+        appendStream.close();
+        fsAppendStream.close();
     }
 
     static class UrlAndSocialImageNotEmptyFilter implements Function<JsonEntry, Boolean> {

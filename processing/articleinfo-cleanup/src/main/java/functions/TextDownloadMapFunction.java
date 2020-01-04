@@ -32,7 +32,7 @@ public class TextDownloadMapFunction implements PairFunction<JsonEntry, JsonEntr
             ArticleExtractor articleExtractor = ArticleExtractor.getInstance();
             content = articleExtractor.getText(new InputStreamReader(is));
             if (content.length() != 0) {
-                System.out.println(content.length());
+                System.out.println("A: "+content.length());
                 v1.withArticlePath(prefixPath + MD5Hash.digest(v1.getUrl().getBytes()).toString());
             }
         } catch (MalformedURLException ex) {

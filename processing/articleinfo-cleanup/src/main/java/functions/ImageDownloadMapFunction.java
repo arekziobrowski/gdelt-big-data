@@ -29,7 +29,7 @@ public class ImageDownloadMapFunction implements PairFunction<JsonEntry, JsonEnt
             conn.setConnectTimeout(connectionTimeout * 1000);
             conn.setRequestMethod("GET");
             content = IOUtils.toByteArray(conn.getInputStream());
-            System.out.println("L: " + content.length);
+            System.out.println("I: " + content.length);
             input.withImagePath(prefixPath + MD5Hash.digest(input.getSocialImage().getBytes()).toString());
         } catch (IOException e) {
             System.out.println("Issue with downloading image from: " + url);
