@@ -23,7 +23,7 @@ import java.util.*;
 
 public class ImagePixelProcessor {
 
-    private static String ARTICLE_LOOKUP_PATH = "src/main/resources/article_lookup.dat";
+    private static String ARTICLE_LOOKUP_PATH = "/etl/staging/load/{RUN_CONTROL_DATE}/article_lookup.dat";
     private static String ARTICLES_API_INFO_CLEANSED_PATH = "/etl/staging/cleansed/{RUN_CONTROL_DATE}/api/articles-api-info-cleansed.dat";
     private static final Integer PARTITIONS_NUMBER = 4;
 
@@ -32,6 +32,10 @@ public class ImagePixelProcessor {
 
     private static final String RUN_CONTROL_DATE_PLACEHOLDER = "{RUN_CONTROL_DATE}";
     private static final String DELIMITER = "\t";
+
+    private static final JavaSparkContext sc = new JavaSparkContext(new SparkConf()
+            .setMaster("local[2]")
+            .setAppName("Image processing"));
 
     public static void main(String[] args) throws Exception {
 
@@ -47,12 +51,9 @@ public class ImagePixelProcessor {
         IMAGE_METADATA_OUTPUT_PATH = IMAGE_METADATA_OUTPUT_PATH.replace(RUN_CONTROL_DATE_PLACEHOLDER, RUN_CONTROL_DATE);
         IMAGE_OUTPUT_PATH = IMAGE_OUTPUT_PATH.replace(RUN_CONTROL_DATE_PLACEHOLDER, RUN_CONTROL_DATE);
 
-        SparkConf conf =
-                new SparkConf()
-                .setMaster("local[2]")
-                .setAppName("Image processing");
-        JavaSparkContext sc = new JavaSparkContext(conf);
-        Configuration hc = sc.hadoopConfiguration();
+
+
+        final Configuration hc = sc.hadoopConfiguration();
 
         FileSystem fileSystem = FileSystem.get(hc);
 
@@ -66,7 +67,7 @@ public class ImagePixelProcessor {
                     @Override
                     public Tuple2<String, Integer> call(String s) throws Exception {
                         String[] spl = s.split(DELIMITER);
-                        return new Tuple2<>(trimQuotes(spl[1]), Integer.parseInt(spl[0]));
+                        return new Tuple2<>(spl[1], Integer.parseInt(spl[0]));
                     }
                 }).partitionBy(new HashPartitioner(PARTITIONS_NUMBER));
 
@@ -79,13 +80,13 @@ public class ImagePixelProcessor {
                 public ArticleInfo call(String s) throws Exception {
                     String[] spl = s.split(DELIMITER);
                     return new ArticleInfo(
-                            trimQuotes(spl[0]),
-                            trimQuotes(spl[1]),
-                            new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(trimQuotes(spl[2])),
-                            trimQuotes(spl[3]),
-                            trimQuotes(spl[4]),
-                            trimQuotes(spl[5]),
-                            trimQuotes(spl[6])
+                            spl[0],
+                            spl[1],
+                            new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(spl[2]),
+                            spl[3],
+                            spl[4],
+                            spl[5],
+                            spl[6]
                     );
                 }
             }).cache();
@@ -103,7 +104,11 @@ public class ImagePixelProcessor {
             @Override
             public Iterable<ImageMetadata> call(ArticleInfo articleInfo) throws Exception {
                 HashMap<Color, ImageMetadata> colorMap = new HashMap<>();
-                BufferedImage image = ImageIO.read(new File(articleInfo.getImagePath()));
+                // BufferedImage image = ImageIO.read(new File(articleInfo.getImagePath()));
+
+                FileSystem fileSystem = FileSystem.get(sc.hadoopConfiguration());
+                BufferedImage image = ImageIO.read(fileSystem.open(new Path(articleInfo.getImagePath())));
+
 
                 if (image != null) {
                     for (int x = 0; x < image.getWidth(); x++) {
@@ -118,11 +123,12 @@ public class ImagePixelProcessor {
                                 colorMap.get(c).incrementCount();
                             }
                             else {
-                                colorMap.put(c, new ImageMetadata(Integer.parseInt(Util.getJedis().get(c.toString())), b.value().get(articleInfo.getUrl()), new Date()));
+                                colorMap.put(c, new ImageMetadata(Integer.parseInt(Util.getJedis().getResource().get(c.toString())), b.value().get(articleInfo.getUrl()), new Date()));
                             }
                         }
                     }
                 }
+                fileSystem.close();
                 return colorMap.values();
             }
         });
