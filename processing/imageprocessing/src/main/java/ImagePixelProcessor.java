@@ -1,85 +1,137 @@
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.spark.HashPartitioner;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.api.java.function.Function;
-import org.apache.spark.input.PortableDataStream;
-import org.apache.tika.Tika;
+import org.apache.spark.api.java.function.PairFunction;
+import org.apache.spark.broadcast.Broadcast;
+import scala.Tuple2;
+
 
 import javax.imageio.ImageIO;
-import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.List;
+
 
 
 public class ImagePixelProcessor {
 
+    private static String ARTICLE_LOOKUP_PATH = "src/main/resources/article_lookup.dat";
+    private static String ARTICLES_API_INFO_CLEANSED_PATH = "/etl/staging/cleansed/{RUN_CONTROL_DATE}/api/articles-api-info-cleansed.dat";
+    private static final Integer PARTITIONS_NUMBER = 4;
+
+    private static String IMAGE_METADATA_OUTPUT_PATH = "/etl/staging/load/{RUN_CONTROL_DATE}/image_metadata.dat";
+    private static String IMAGE_OUTPUT_PATH = "/etl/staging/load/{RUN_CONTROL_DATE}/image.dat";
+
+    private static final String RUN_CONTROL_DATE_PLACEHOLDER = "{RUN_CONTROL_DATE}";
+    private static final String DELIMITER = "\t";
+
     public static void main(String[] args) throws Exception {
 
-        SparkConf conf = new SparkConf().setMaster("local").setAppName("Image processing");
+        if (args.length == 0 || !args[0].matches("[0-9]{8}")) {
+            System.err.println("Provide RUN_CONTROL_DATE with args[].");
+            System.exit(2);
+        }
+        final String RUN_CONTROL_DATE = args[0];
+
+        ARTICLE_LOOKUP_PATH = ARTICLE_LOOKUP_PATH.replace(RUN_CONTROL_DATE_PLACEHOLDER, RUN_CONTROL_DATE);
+        ARTICLES_API_INFO_CLEANSED_PATH = ARTICLES_API_INFO_CLEANSED_PATH.replace(RUN_CONTROL_DATE_PLACEHOLDER, RUN_CONTROL_DATE);
+
+        IMAGE_METADATA_OUTPUT_PATH = IMAGE_METADATA_OUTPUT_PATH.replace(RUN_CONTROL_DATE_PLACEHOLDER, RUN_CONTROL_DATE);
+        IMAGE_OUTPUT_PATH = IMAGE_OUTPUT_PATH.replace(RUN_CONTROL_DATE_PLACEHOLDER, RUN_CONTROL_DATE);
+
+        SparkConf conf =
+                new SparkConf()
+                .setMaster("local[2]")
+                .setAppName("Image processing");
         JavaSparkContext sc = new JavaSparkContext(conf);
+        Configuration hc = sc.hadoopConfiguration();
 
-        //JavaPairRDD<String, PortableDataStream> image = sc.binaryFiles("src/main/resources/image");
-        // Get path
-        // Probe type Files.probeContentType((new File("filename.ext")).toPath());
-        // Read image
-        //
-        // Map List of ImageMetadata
-        // Map List of articles
-        final Tika tika = new Tika();
+        FileSystem fileSystem = FileSystem.get(hc);
 
+        fileSystem.delete(new Path(IMAGE_METADATA_OUTPUT_PATH), true);
+        fileSystem.delete(new Path(IMAGE_OUTPUT_PATH), true);
+        fileSystem.close();
 
-        JavaRDD<String> paths = sc.parallelize(Arrays.asList("src/main/resources/test"));
-        JavaRDD<ImageMetadata> ims = paths.flatMap(new FlatMapFunction<String, ImageMetadata>() {
+        JavaPairRDD<String, Integer> articleLookup =
+            sc.textFile(ARTICLE_LOOKUP_PATH)
+                .mapToPair(new PairFunction<String, String, Integer>() {
+                    @Override
+                    public Tuple2<String, Integer> call(String s) throws Exception {
+                        String[] spl = s.split(DELIMITER);
+                        return new Tuple2<>(trimQuotes(spl[1]), Integer.parseInt(spl[0]));
+                    }
+                }).partitionBy(new HashPartitioner(PARTITIONS_NUMBER));
+
+        final Broadcast<Map<String, Integer>> b = sc.broadcast(articleLookup.collectAsMap());
+
+        JavaRDD<ArticleInfo> articleInfos =
+            sc.textFile(ARTICLES_API_INFO_CLEANSED_PATH)
+            .map(new Function<String, ArticleInfo>() {
+                @Override
+                public ArticleInfo call(String s) throws Exception {
+                    String[] spl = s.split(DELIMITER);
+                    return new ArticleInfo(
+                            trimQuotes(spl[0]),
+                            trimQuotes(spl[1]),
+                            new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(trimQuotes(spl[2])),
+                            trimQuotes(spl[3]),
+                            trimQuotes(spl[4]),
+                            trimQuotes(spl[5]),
+                            trimQuotes(spl[6])
+                    );
+                }
+            }).cache();
+
+        JavaRDD<Image> images = articleInfos.map(new Function<ArticleInfo, Image>() {
             @Override
-            public Iterable<ImageMetadata> call(String s) throws Exception {
-                String mimeType = tika.detect(new File(s));
-
-                return null;
+            public Image call(ArticleInfo articleInfo) throws Exception {
+                return new Image(null, articleInfo.getImagePath(), b.value().get(articleInfo.getUrl()), new Date());
             }
         });
 
-        for (ImageMetadata i : ims.collect()) {
-            Color c = i.getC();
-            System.out.println("R:" + c.getRed() + ", G: " + c.getGreen() + ", B: " + c.getBlue());
-        }
-        /*JavaRDD<ImageMetadata> imageMetadataRDD = image.values().map(new Function<PortableDataStream, ImageMetadata>() {
-            @Override
-            public ImageMetadata call(PortableDataStream portableDataStream) throws Exception {
-                BufferedImage bufferedImage = createImageFromBytes(portableDataStream.toArray());
+        images.saveAsTextFile(IMAGE_OUTPUT_PATH);
 
-                for (int x = 0; x < bufferedImage.getWidth(); x++) {
-                    for (int y = 0; y < bufferedImage.getHeight(); y++) {
-                        Color c = new Color(bufferedImage.getRGB(x, y));
-                        return new ImageMetadata(1, c, 1, 1, new Date());
+        JavaRDD<ImageMetadata> ims = articleInfos.flatMap(new FlatMapFunction<ArticleInfo, ImageMetadata>() {
+            @Override
+            public Iterable<ImageMetadata> call(ArticleInfo articleInfo) throws Exception {
+                HashMap<Color, ImageMetadata> colorMap = new HashMap<>();
+                BufferedImage image = ImageIO.read(new File(articleInfo.getImagePath()));
+
+                if (image != null) {
+                    for (int x = 0; x < image.getWidth(); x++) {
+                        for (int y = 0; y < image.getHeight(); y++) {
+                            int color = image.getRGB(x, y);
+                            int red = (color & 0x00ff0000) >> 16;
+                            int green = (color & 0x0000ff00) >> 8;
+                            int blue = color & 0x000000ff;
+                            Color c = new Color(red, green, blue);
+
+                            if (colorMap.containsKey(c)) {
+                                colorMap.get(c).incrementCount();
+                            }
+                            else {
+                                colorMap.put(c, new ImageMetadata(Integer.parseInt(Util.getJedis().get(c.toString())), b.value().get(articleInfo.getUrl()), new Date()));
+                            }
+                        }
                     }
                 }
-
-                return null;
+                return colorMap.values();
             }
-        });*/
+        });
 
-        /*for (ImageMetadata i : imageMetadataRDD.collect()) {
-            Color c = i.getC();
-            System.out.println("R:" + c.getRed() + ", G: " + c.getGreen() + ", B: " + c.getBlue());
-        }*/
-
-        //System.out.println(image);
+        ims.saveAsTextFile(IMAGE_METADATA_OUTPUT_PATH);
+        sc.close();
     }
 
-    private static BufferedImage createImageFromBytes(byte[] imageData) {
-        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(imageData);
-        try {
-            return ImageIO.read(byteArrayInputStream);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    private static String trimQuotes(String s) {
+        return s.substring(1, s.length() - 1);
     }
 }
