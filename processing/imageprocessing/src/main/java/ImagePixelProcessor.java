@@ -1,3 +1,6 @@
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.spark.HashPartitioner;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
@@ -20,22 +23,42 @@ import java.util.*;
 
 public class ImagePixelProcessor {
 
-    private static final String ARTICLE_LOOKUP_PATH = "src/main/resources/article_lookup.dat";
-    private static final String ARTICLES_API_INFO_CLEANSED_PATH = "src/main/resources/articles-api-info-cleansed.csv";
+    private static String ARTICLE_LOOKUP_PATH = "src/main/resources/article_lookup.dat";
+    private static String ARTICLES_API_INFO_CLEANSED_PATH = "/etl/staging/cleansed/{RUN_CONTROL_DATE}/api/articles-api-info-cleansed.dat";
     private static final Integer PARTITIONS_NUMBER = 4;
 
-    private static final String IMAGE_METADATA_OUTPUT_PATH = "src/main/resources/image_metadata.dat";
-    private static final String IMAGE_OUTPUT_PATH = "src/main/resources/image.dat";
+    private static String IMAGE_METADATA_OUTPUT_PATH = "/etl/staging/load/{RUN_CONTROL_DATE}/image_metadata.dat";
+    private static String IMAGE_OUTPUT_PATH = "/etl/staging/load/{RUN_CONTROL_DATE}/image.dat";
 
+    private static final String RUN_CONTROL_DATE_PLACEHOLDER = "{RUN_CONTROL_DATE}";
     private static final String DELIMITER = "\t";
 
     public static void main(String[] args) throws Exception {
+
+        if (args.length == 0 || !args[0].matches("[0-9]{8}")) {
+            System.err.println("Provide RUN_CONTROL_DATE with args[].");
+            System.exit(2);
+        }
+        final String RUN_CONTROL_DATE = args[0];
+
+        ARTICLE_LOOKUP_PATH = ARTICLE_LOOKUP_PATH.replace(RUN_CONTROL_DATE_PLACEHOLDER, RUN_CONTROL_DATE);
+        ARTICLES_API_INFO_CLEANSED_PATH = ARTICLES_API_INFO_CLEANSED_PATH.replace(RUN_CONTROL_DATE_PLACEHOLDER, RUN_CONTROL_DATE);
+
+        IMAGE_METADATA_OUTPUT_PATH = IMAGE_METADATA_OUTPUT_PATH.replace(RUN_CONTROL_DATE_PLACEHOLDER, RUN_CONTROL_DATE);
+        IMAGE_OUTPUT_PATH = IMAGE_OUTPUT_PATH.replace(RUN_CONTROL_DATE_PLACEHOLDER, RUN_CONTROL_DATE);
 
         SparkConf conf =
                 new SparkConf()
                 .setMaster("local[2]")
                 .setAppName("Image processing");
         JavaSparkContext sc = new JavaSparkContext(conf);
+        Configuration hc = sc.hadoopConfiguration();
+
+        FileSystem fileSystem = FileSystem.get(hc);
+
+        fileSystem.delete(new Path(IMAGE_METADATA_OUTPUT_PATH), true);
+        fileSystem.delete(new Path(IMAGE_OUTPUT_PATH), true);
+        fileSystem.close();
 
         JavaPairRDD<String, Integer> articleLookup =
             sc.textFile(ARTICLE_LOOKUP_PATH)
