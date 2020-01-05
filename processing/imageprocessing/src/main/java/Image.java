@@ -1,4 +1,5 @@
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class Image implements Serializable {
@@ -17,7 +18,7 @@ public class Image implements Serializable {
 
     @Override
     public String toString() {
-        return id + '|' + url + '|' + article_id + "|" + loadDate;
+        return id + '\t' + url + '\t' + article_id + "\t" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(loadDate);
     }
 
     public String getId() {

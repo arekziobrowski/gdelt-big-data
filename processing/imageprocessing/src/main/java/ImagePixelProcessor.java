@@ -1,3 +1,4 @@
+import org.apache.spark.HashPartitioner;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
@@ -21,6 +22,12 @@ public class ImagePixelProcessor {
 
     private static final String ARTICLE_LOOKUP_PATH = "src/main/resources/article_lookup.dat";
     private static final String ARTICLES_API_INFO_CLEANSED_PATH = "src/main/resources/articles-api-info-cleansed.csv";
+    private static final Integer PARTITIONS_NUMBER = 4;
+
+    private static final String IMAGE_METADATA_OUTPUT_PATH = "src/main/resources/image_metadata.dat";
+    private static final String IMAGE_OUTPUT_PATH = "src/main/resources/image.dat";
+
+    private static final String DELIMITER = "\t";
 
     public static void main(String[] args) throws Exception {
 
@@ -35,10 +42,10 @@ public class ImagePixelProcessor {
                 .mapToPair(new PairFunction<String, String, Integer>() {
                     @Override
                     public Tuple2<String, Integer> call(String s) throws Exception {
-                        String[] spl = s.split("\\|");
+                        String[] spl = s.split(DELIMITER);
                         return new Tuple2<>(trimQuotes(spl[1]), Integer.parseInt(spl[0]));
                     }
-                });
+                }).partitionBy(new HashPartitioner(PARTITIONS_NUMBER));
 
         final Broadcast<Map<String, Integer>> b = sc.broadcast(articleLookup.collectAsMap());
 
@@ -47,7 +54,7 @@ public class ImagePixelProcessor {
             .map(new Function<String, ArticleInfo>() {
                 @Override
                 public ArticleInfo call(String s) throws Exception {
-                    String[] spl = s.split("\\|");
+                    String[] spl = s.split(DELIMITER);
                     return new ArticleInfo(
                             trimQuotes(spl[0]),
                             trimQuotes(spl[1]),
@@ -60,8 +67,6 @@ public class ImagePixelProcessor {
                 }
             }).cache();
 
-
-
         JavaRDD<Image> images = articleInfos.map(new Function<ArticleInfo, Image>() {
             @Override
             public Image call(ArticleInfo articleInfo) throws Exception {
@@ -69,10 +74,8 @@ public class ImagePixelProcessor {
             }
         });
 
-        for(Image image : images.collect()) {
-            System.out.println(image);
-        }
-        
+        images.saveAsTextFile(IMAGE_OUTPUT_PATH);
+
         JavaRDD<ImageMetadata> ims = articleInfos.flatMap(new FlatMapFunction<ArticleInfo, ImageMetadata>() {
             @Override
             public Iterable<ImageMetadata> call(ArticleInfo articleInfo) throws Exception {
@@ -92,7 +95,7 @@ public class ImagePixelProcessor {
                                 colorMap.get(c).incrementCount();
                             }
                             else {
-                                colorMap.put(c, new ImageMetadata(c, Integer.parseInt(Util.getJedis().get(c.toString())), 1, new Date()));
+                                colorMap.put(c, new ImageMetadata(Integer.parseInt(Util.getJedis().get(c.toString())), b.value().get(articleInfo.getUrl()), new Date()));
                             }
                         }
                     }
@@ -101,14 +104,8 @@ public class ImagePixelProcessor {
             }
         });
 
-
-
-        /*for (ImageMetadata i : ims.collect()) {
-            //Color c = i.getC();
-            System.out.println("ID: " + i.getColorId());
-            //System.out.println("R:" + c.getR() + ", G: " + c.getG() + ", B: " + c.getB() + ", count: " + i.getCount());
-        }*/
-
+        ims.saveAsTextFile(IMAGE_METADATA_OUTPUT_PATH);
+        sc.close();
     }
 
     private static String trimQuotes(String s) {
