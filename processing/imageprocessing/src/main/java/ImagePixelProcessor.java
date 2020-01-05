@@ -1,4 +1,5 @@
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.spark.HashPartitioner;
@@ -10,6 +11,7 @@ import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.broadcast.Broadcast;
+import redis.clients.jedis.Jedis;
 import scala.Tuple2;
 
 
@@ -51,7 +53,7 @@ public class ImagePixelProcessor {
         IMAGE_METADATA_OUTPUT_PATH = IMAGE_METADATA_OUTPUT_PATH.replace(RUN_CONTROL_DATE_PLACEHOLDER, RUN_CONTROL_DATE);
         IMAGE_OUTPUT_PATH = IMAGE_OUTPUT_PATH.replace(RUN_CONTROL_DATE_PLACEHOLDER, RUN_CONTROL_DATE);
 
-
+        System.out.println(Util.getJedis().getResource().get("0,0,0"));
 
         final Configuration hc = sc.hadoopConfiguration();
 
@@ -106,8 +108,9 @@ public class ImagePixelProcessor {
                 HashMap<Color, ImageMetadata> colorMap = new HashMap<>();
                 // BufferedImage image = ImageIO.read(new File(articleInfo.getImagePath()));
 
-                FileSystem fileSystem = FileSystem.get(sc.hadoopConfiguration());
-                BufferedImage image = ImageIO.read(fileSystem.open(new Path(articleInfo.getImagePath())));
+                FileSystem fileSystem = FileSystem.newInstance(sc.hadoopConfiguration());
+                FSDataInputStream fs = fileSystem.open(new Path(articleInfo.getImagePath()));
+                BufferedImage image = ImageIO.read(fs);
 
 
                 if (image != null) {
@@ -123,7 +126,10 @@ public class ImagePixelProcessor {
                                 colorMap.get(c).incrementCount();
                             }
                             else {
-                                colorMap.put(c, new ImageMetadata(Integer.parseInt(Util.getJedis().getResource().get(c.toString())), b.value().get(articleInfo.getUrl()), new Date()));
+                                //colorMap.put(c, new ImageMetadata(1, b.value().get(articleInfo.getUrl()), new Date()));
+                                Jedis jedis = Util.getJedis().getResource();
+                                colorMap.put(c, new ImageMetadata(Integer.parseInt(jedis.get(c.toString())), b.value().get(articleInfo.getUrl()), new Date()));
+                                jedis.close();
                             }
                         }
                     }
