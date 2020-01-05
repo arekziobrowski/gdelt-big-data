@@ -9,11 +9,13 @@ import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.SQLContext;
+import redis.clients.jedis.Jedis;
 import scala.Tuple2;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.net.URI;
 import java.util.*;
 
 
@@ -21,29 +23,18 @@ import java.util.*;
 public class ImagePixelProcessor {
 
     public static void main(String[] args) throws Exception {
-
-        SparkConf conf = new SparkConf().setMaster("local[2]").setAppName("Image processing");
+        
+        SparkConf conf =
+                new SparkConf()
+                .setMaster("local[2]")
+                .setAppName("Image processing");
         JavaSparkContext sc = new JavaSparkContext(conf);
-
-        JavaRDD<String> csv = sc.textFile("src/main/resources/color_metadata.csv");
-        final JavaPairRDD<Color, Integer> lookupColor = csv.mapToPair(new PairFunction<String, Color, Integer>() {
-            @Override
-            public Tuple2<Color, Integer> call(String s) throws Exception {
-                String[] split = s.split(",");
-                return new Tuple2<>(
-                        new Color(
-                                Integer.parseInt(split[1]),
-                                Integer.parseInt(split[2]),
-                                Integer.parseInt(split[3])),
-                        Integer.parseInt(split[0]));
-            }
-        });
 
 
         JavaRDD<String> paths = sc.parallelize(Arrays.asList("src/main/resources/test"));
-        JavaPairRDD<Color, ImageMetadata> ims = paths.flatMapToPair(new PairFlatMapFunction<String, Color, ImageMetadata>() {
+        JavaRDD<ImageMetadata> ims = paths.flatMap(new FlatMapFunction<String, ImageMetadata>() {
             @Override
-            public Iterable<Tuple2<Color, ImageMetadata>> call(String s) throws Exception {
+            public Iterable<ImageMetadata> call(String s) throws Exception {
                 HashMap<Color, ImageMetadata> colorMap = new HashMap<>();
                 BufferedImage image = ImageIO.read(new File(s));
 
@@ -60,43 +51,22 @@ public class ImagePixelProcessor {
                                 colorMap.get(c).incrementCount();
                             }
                             else {
-                                colorMap.put(c, new ImageMetadata(c, null, null, new Date()));
+                                colorMap.put(c, new ImageMetadata(c, Integer.parseInt(Util.getJedis().get(c.toString())), 1, new Date()));
                             }
                         }
                     }
                 }
-                List<Tuple2<Color, ImageMetadata>> out = new ArrayList<>();
-
-                for (Color c : colorMap.keySet()) {
-                    out.add(new Tuple2<>(c, colorMap.get(c)));
-                }
-                return out;
+                return colorMap.values();
             }
         });
 
-        JavaRDD<ImageMetadata> output =
-                ims
-                .join(lookupColor)
-                .map(new Function<Tuple2<Color, Tuple2<ImageMetadata, Integer>>, ImageMetadata>() {
-                    @Override
-                    public ImageMetadata call(Tuple2<Color, Tuple2<ImageMetadata, Integer>> colorTuple2Tuple2) throws Exception {
-                        ImageMetadata i = colorTuple2Tuple2._2._1;
-                        i.setColorId(colorTuple2Tuple2._2._2);
-                        return i;
-                    }
-                });
 
 
-        for (ImageMetadata i : output.collect()) {
-            System.out.println("ID: " + i.getColorId());
-        }
-
-        /*for (Tuple2<Color, ImageMetadata> tuple : ims.collect()) {
+        for (ImageMetadata i : ims.collect()) {
             //Color c = i.getC();
-            ImageMetadata i = tuple._2;
             System.out.println("ID: " + i.getColorId());
             //System.out.println("R:" + c.getR() + ", G: " + c.getG() + ", B: " + c.getB() + ", count: " + i.getCount());
-        }*/
+        }
 
     }
 }

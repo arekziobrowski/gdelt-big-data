@@ -13,6 +13,11 @@ public class Color implements Serializable {
         this.b = b;
     }
 
+    @Override
+    public String toString() {
+        return String.valueOf(r) + ',' + g + ',' + b;
+    }
+
     public int getR() {
         return r;
     }
