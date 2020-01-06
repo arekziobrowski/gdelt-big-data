@@ -41,6 +41,10 @@ function main {
             success "Starting RAKE processing job..."
             spark-submit --class "RakeKeyWordsProcessing" --master yarn --deploy-mode client $2 ${RUN_CONTROL_DATE}
         ;;
+        country)
+            success "Starting country mapping job..."
+            spark-submit --class "CountryMapper" --master yarn --deploy-mode client $2 ${RUN_CONTROL_DATE}
+        ;;
     esac
 }
 
@@ -49,7 +53,7 @@ then
     help
     exit 0
 fi
-if ! [[ $1 =~ ^(csv|json|rake)$ ]]
+if ! [[ $1 =~ ^(csv|json|rake|country)$ ]]
 then
     help
     exit 0
