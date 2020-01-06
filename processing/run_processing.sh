@@ -35,11 +35,11 @@ function main {
         ;;
         json)
             success "Starting article-info.json Clean-up job..."
-            spark-submit --class "ArticleInfoCleanUp" --master yarn --deploy-mode client $1 ${RUN_CONTROL_DATE}
+            spark-submit --class "ArticleInfoCleanUp" --master yarn --deploy-mode client $2 ${RUN_CONTROL_DATE}
         ;;
         rake)
             success "Starting RAKE processing job..."
-            spark-submit --class "RakeKeyWordsProcessing" --master yarn --deploy-mode client $1 ${RUN_CONTROL_DATE}
+            spark-submit --class "RakeKeyWordsProcessing" --master yarn --deploy-mode client $2 ${RUN_CONTROL_DATE}
         ;;
     esac
 }
