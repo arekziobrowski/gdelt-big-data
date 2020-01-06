@@ -52,6 +52,8 @@ services:
     image: redis
     networks:
       - gdelt_network
+    ports:
+      - 6379:6379
 
 networks:
   gdelt_network:
