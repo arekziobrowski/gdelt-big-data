@@ -9,8 +9,8 @@ declare -r LIGHT_BLUE='\033[1;34m'
 declare -r GREEN='\033[32m'
 
 declare -r RUN_CONTROL_DATE_PATH='/tech/RUN_CONTROL_DATE.dat'
-declare -r JAR_PATH='csv-clean-up-1.0-SNAPSHOT.jar'
-declare -r JAR_CLASS='CsvCleanUp'
+declare -r JAR_PATH='rake-1.0-SNAPSHOT.jar'
+declare -r JAR_CLASS='RakeKeyWordsProcessing'
 
 function error() {
     echo -e "${RED}${BOLD}${*}${RESET}" >&2
@@ -27,8 +27,8 @@ function main(){
         error "File with RUN_CONTROL_DATE doesn not exist"
     else
         RUN_CONTROL_DATE=`hdfs dfs -cat $RUN_CONTROL_DATE_PATH`
-        success "Starting map reduce job..."
-        hadoop jar ${JAR_PATH} ${JAR_CLASS} ${RUN_CONTROL_DATE}
+        success "Starting RAKE processing job..."
+        spark-submit --class "${JAR_CLASS}" --master yarn --deploy-mode client ${JAR_PATH} ${RUN_CONTROL_DATE}
     fi
 }
 

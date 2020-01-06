@@ -21,7 +21,7 @@ public class RakePairMapperTest {
     public void setUp() throws Exception {
         InputStream resourceAsStream = RakePairMapperTest.class.getResourceAsStream("/st");
         List<String> keywordsList = IOUtils.readLines(resourceAsStream, StandardCharsets.UTF_8);
-        this.rakePairMapper = new RakePairMapper(keywordsList);
+        this.rakePairMapper = new RakePairMapper(keywordsList, -1.0); //Becuase of negative value it will return every keyphrase
     }
 
     @Test

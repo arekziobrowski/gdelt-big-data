@@ -3,6 +3,7 @@ import functions.RakePairMapper;
 import model.OutputRow;
 import model.Phrase;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -15,18 +16,20 @@ import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.sql.SQLContext;
 import scala.Tuple2;
 
+import java.io.BufferedOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
 
 public class RakeKeyWordsProcessing {
-    private final static String LOG_FILE = "/home/jakub/2sem/rake/logi";
-    private static String LOOKUP_FILE = "/home/jakub/2sem/rake/lookup";
-    private static String INPUT_PATH = "/home/jakub/2sem/rake/articles-api-info-cleansed.dat-part-*";
-    private static String ARTICLES_PATH = "/home/jakub/2sem/article-info/texts/";
-    private final static String STOP_WORDS = "/home/jakub/2sem/rake/stop-words";
-    private static String OUT_DIR = "/home/jakub/2sem/rake/output/";
-    private final static String OUTPUT_FILES_PREFIX = "keyword_metadata.dat";
+    private final static String LOG_FILE = "/tech/transformation/log/keyword-process.log";
+    private static String LOOKUP_FILE = "/etl/staging/load/{RUN_CONTROL_DATE}/article_lookup.dat";
+    private static String INPUT_PATH = "/etl/staging/cleansed/{RUN_CONTROL_DATE}/api/articles-api-info-cleansed.dat*";
+    private static String ARTICLES_PATH = "/etl/staging/cleansed/{RUN_CONTROL_DATE}/texts/";
+    private final static String STOP_WORDS = "/tech/STOPWORDS.txt";
+    private static String OUT_DIR = "/etl/staging/load/{RUN_CONTROL_DATE}/rake/";
+    private final static String OUTPUT_FILES_PREFIX = "keyword_metadata.dat-";
 
     public static void main(String[] args) throws IOException {
         //CONSTANTS
@@ -39,17 +42,20 @@ public class RakeKeyWordsProcessing {
         LOOKUP_FILE = LOOKUP_FILE.replace("{RUN_CONTROL_DATE}", RUN_CONTROL_DATE);
         ARTICLES_PATH = ARTICLES_PATH.replace("{RUN_CONTROL_DATE}", RUN_CONTROL_DATE);
         OUT_DIR = OUT_DIR.replace("{RUN_CONTROL_DATE}", RUN_CONTROL_DATE);
+
         //CONFIGURATION
-        SparkConf conf = new SparkConf().setMaster("local").setAppName("RAKE Processing");
+        SparkConf conf = new SparkConf().setAppName("RAKE Processing");
         JavaSparkContext sc = new JavaSparkContext(conf);
         Configuration hadoopConfiguration = sc.hadoopConfiguration();
         SQLContext sqlContext = new SQLContext(sc);
+
         //CLEANING DIRS
         FileSystem fileSystem = FileSystem.get(sc.hadoopConfiguration());
         if (!fileSystem.exists(new Path(LOG_FILE)))
             fileSystem.create(new Path(LOG_FILE));
         fileSystem.delete(new Path(OUT_DIR), true);
         fileSystem.close();
+
         //PROCESSING
         log("RAKE Processing starting...", sc.hadoopConfiguration());
         final List<String> stopWords = sc.textFile(STOP_WORDS).collect();
@@ -63,7 +69,7 @@ public class RakeKeyWordsProcessing {
                 .filter(new KeyValueNotEmptyFilter());
 
         final JavaPairRDD<String, Phrase[]> pathRAKEKeywords = sc.wholeTextFiles(ARTICLES_PATH)
-                .mapToPair(new RakePairMapper(stopWords));
+                .mapToPair(new RakePairMapper(stopWords, 1.0));
 
         final JavaRDD<OutputRow> outputRowJavaRDD = pathRAKEKeywords.join(articleIdAndPathPairs).values()
                 .flatMap(new FlatMapToOutputRowFunction());
@@ -86,24 +92,18 @@ public class RakeKeyWordsProcessing {
 
     private static void log(String logMessage, Configuration hadoopConfiguration) throws IOException {
         FileSystem fileSystem = FileSystem.get(hadoopConfiguration);
-        String logLine = "ArticleInfoCleanUp | " + new Date().toString() + " | " + logMessage + '\n';
-        System.out.print(logLine);
-//        FSDataOutputStream fsAppendStream = fileSystem.append(new Path(LOG_FILE));
-//        BufferedOutputStream appendStream = new BufferedOutputStream(fsAppendStream);
-//        appendStream.write(logLine.getBytes(StandardCharsets.UTF_8));
-//        appendStream.close();
-//        fsAppendStream.close();
-//        fileSystem.close();
+        log(logMessage, fileSystem);
+        fileSystem.close();
     }
 
     private static void log(String logMessage, FileSystem fileSystem) throws IOException {
         String logLine = "ArticleInfoCleanUp | " + new Date().toString() + " | " + logMessage + '\n';
         System.out.print(logLine);
-//        FSDataOutputStream fsAppendStream = fileSystem.append(new Path(LOG_FILE));
-//        BufferedOutputStream appendStream = new BufferedOutputStream(fsAppendStream);
-//        appendStream.write(logLine.getBytes(StandardCharsets.UTF_8));
-//        appendStream.close();
-//        fsAppendStream.close();
+        FSDataOutputStream fsAppendStream = fileSystem.append(new Path(LOG_FILE));
+        BufferedOutputStream appendStream = new BufferedOutputStream(fsAppendStream);
+        appendStream.write(logLine.getBytes(StandardCharsets.UTF_8));
+        appendStream.close();
+        fsAppendStream.close();
     }
 
     static class Identity implements PairFunction<Tuple2<String, String>, String, String> {

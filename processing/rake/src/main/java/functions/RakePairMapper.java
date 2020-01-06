@@ -11,11 +11,13 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 public class RakePairMapper implements PairFunction<Tuple2<String, String>, String, Phrase[]> {
+    private final double threshold;
     private final Pattern pattern;
     private final String sentenceSplitRegex = "[.!?,;:\\n\\t\"\\(\\)\'\u2019\u2013]|\\s\\-\\s";
     private final String phraseSplitRegex = "[^a-zA-Z0-9_\\+\\-/]";
 
-    public RakePairMapper(List<String> stopWords) {
+    public RakePairMapper(List<String> stopWords, double threshold) {
+        this.threshold = threshold;
         this.pattern = Pattern.compile(buildStopWordsRegex(stopWords), Pattern.CASE_INSENSITIVE);
     }
 
@@ -24,18 +26,20 @@ public class RakePairMapper implements PairFunction<Tuple2<String, String>, Stri
         List<String> phrasesString = getPhrasesList(stringStringTuple2._2());
         Map<String, Double> worldsScores = calculateWorldsScores(phrasesString);
 
-        Phrase[] phrases = calculatePhrases(phrasesString, worldsScores).toArray(new Phrase[]{});
+        Phrase[] phrases = calculatePhrases(phrasesString, worldsScores, this.threshold).toArray(new Phrase[]{});
         return new Tuple2<>(mapUrl(stringStringTuple2._1()), phrases);
     }
 
     private String mapUrl(String input) {
-        String[] splitted = input.split(":", 2);
+        String[] splitted = input.split(":[0-9]*(?=(/[a-zA-Z]))", 2);
         return splitted.length == 2 ? splitted[1] : splitted[0];
     }
 
-    List<Phrase> calculatePhrases(List<String> phrasesList, Map<String, Double> wordScore) {
+    List<Phrase> calculatePhrases(List<String> phrasesList, Map<String, Double> wordScore, double threshold) {
         Map<String, Double> phraseScore = new HashMap<>();
         for (String phrase : phrasesList) {
+            if (phraseScore.containsKey(phrase))
+                continue;
             double score = 0.0;
             for (String w : separatePhrase(phrase)) {
                 score += wordScore.get(w);
@@ -45,7 +49,8 @@ public class RakePairMapper implements PairFunction<Tuple2<String, String>, Stri
 
         List<Phrase> phraseList = new LinkedList<>();
         for (Map.Entry<String, Double> entry : phraseScore.entrySet()) {
-            phraseList.add(new Phrase(entry.getKey(), entry.getValue()));
+            if (entry.getValue() > threshold)
+                phraseList.add(new Phrase(entry.getKey(), entry.getValue()));
         }
         return phraseList;
     }
@@ -59,19 +64,19 @@ public class RakePairMapper implements PairFunction<Tuple2<String, String>, Stri
             int degree = length - 1;
             for (String word : words) {
                 if (wordFrequency.containsKey(word)) {
-                    wordFrequency.put(word, wordFrequency.get(word) + 1);
+                    wordFrequency.put(word, wordFrequency.remove(word) + 1);
                 } else {
                     wordFrequency.put(word, 1);
                 }
                 if (wordDegree.containsKey(word)) {
-                    wordDegree.put(word, wordDegree.get(word) + degree);
+                    wordDegree.put(word, wordDegree.remove(word) + degree);
                 } else {
                     wordDegree.put(word, degree);
                 }
             }
         }
         for (Map.Entry<String, Integer> freqEntry : wordFrequency.entrySet()) {
-            wordDegree.put(freqEntry.getKey(), wordDegree.get(freqEntry.getKey()) + freqEntry.getValue());
+            wordDegree.put(freqEntry.getKey(), wordDegree.remove(freqEntry.getKey()) + freqEntry.getValue());
         }
         Map<String, Double> wordScore = new HashMap<>();
         for (Map.Entry<String, Integer> entry : wordFrequency.entrySet()) {

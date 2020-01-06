@@ -25,7 +25,7 @@ import java.util.List;
 
 public class ArticleInfoCleanUp {
     private static String INPUT_FILE = "/data/gdelt/{RUN_CONTROL_DATE}/api/*/article_info.json";
-    private static String OUT_DIR = "/etl/staging/cleansed/{RUN_CONTROL_DATE}/api/articles-api-info-cleansed.dat";
+    private static String OUT_DIR = "/etl/staging/cleansed/{RUN_CONTROL_DATE}/api/";
     private static String OUT_DIR_ARTICLES = "/etl/staging/cleansed/{RUN_CONTROL_DATE}/texts/";
     private static String OUT_DIR_IMAGES = "/etl/staging/cleansed/{RUN_CONTROL_DATE}/images/";
     private final static String LOG_FILE = "/tech/transformation/log/articles-api-info-cleansed.log";
