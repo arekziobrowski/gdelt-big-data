@@ -1,3 +1,8 @@
+import functions.*;
+import model.ArticleInfo;
+import model.Color;
+import model.Image;
+import model.ImageMetadata;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -9,16 +14,13 @@ import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.api.java.function.Function;
-import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.broadcast.Broadcast;
 import redis.clients.jedis.Jedis;
-import scala.Tuple2;
+import utils.Util;
 
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 
@@ -33,12 +35,8 @@ public class ImagePixelProcessor {
     private static String IMAGE_OUTPUT_PATH = "/etl/staging/load/{RUN_CONTROL_DATE}/image.dat";
 
     private static final String RUN_CONTROL_DATE_PLACEHOLDER = "{RUN_CONTROL_DATE}";
-    private static final String DELIMITER = "\t";
-    private static final int PERFORMANCE_THRESHOLD = 10;
 
-    private static final JavaSparkContext sc = new JavaSparkContext(new SparkConf()
-            .setMaster("local[2]")
-            .setAppName("Image processing"));
+
 
     public static void main(String[] args) throws Exception {
 
@@ -56,7 +54,7 @@ public class ImagePixelProcessor {
 
         System.out.println(Util.getJedis().getResource().get("0,0,0"));
 
-        final Configuration hc = sc.hadoopConfiguration();
+        final Configuration hc = Util.getSc().hadoopConfiguration();
 
         FileSystem fileSystem = FileSystem.get(hc);
 
@@ -65,85 +63,27 @@ public class ImagePixelProcessor {
         fileSystem.close();
 
         JavaPairRDD<String, Integer> articleLookup =
-            sc.textFile(ARTICLE_LOOKUP_PATH)
-                .mapToPair(new PairFunction<String, String, Integer>() {
-                    @Override
-                    public Tuple2<String, Integer> call(String s) throws Exception {
-                        String[] spl = s.split(DELIMITER);
-                        return new Tuple2<>(spl[1], Integer.parseInt(spl[0]));
-                    }
-                }).partitionBy(new HashPartitioner(PARTITIONS_NUMBER));
+            Util.getSc().textFile(ARTICLE_LOOKUP_PATH)
+                .mapToPair(new ArticleLookupSplitPairFunction())
+                .partitionBy(new HashPartitioner(PARTITIONS_NUMBER));
 
-        final Broadcast<Map<String, Integer>> b = sc.broadcast(articleLookup.collectAsMap());
+        final Broadcast<Map<String, Integer>> b = Util.getSc().broadcast(articleLookup.collectAsMap());
 
         JavaRDD<ArticleInfo> articleInfos =
-            sc.textFile(ARTICLES_API_INFO_CLEANSED_PATH)
-            .map(new Function<String, ArticleInfo>() {
-                @Override
-                public ArticleInfo call(String s) throws Exception {
-                    String[] spl = s.split(DELIMITER);
-                    return new ArticleInfo(
-                            spl[0],
-                            spl[1],
-                            new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(spl[2]),
-                            spl[3],
-                            spl[4],
-                            spl[5],
-                            spl[6]
-                    );
-                }
-            }).cache();
+            Util.getSc().textFile(ARTICLES_API_INFO_CLEANSED_PATH)
+            .map(new ArticleInfoSplitFunction()).cache();
 
-        JavaRDD<Image> images = articleInfos.map(new Function<ArticleInfo, Image>() {
-            @Override
-            public Image call(ArticleInfo articleInfo) throws Exception {
-                return new Image(null, articleInfo.getImagePath(), b.value().get(articleInfo.getUrl()), new Date());
-            }
-        });
+        JavaRDD<Image> images = articleInfos.map(new ImageMapFunction(b));
 
         images.saveAsTextFile(IMAGE_OUTPUT_PATH);
 
-        JavaRDD<ImageMetadata> ims = articleInfos.flatMap(new FlatMapFunction<ArticleInfo, ImageMetadata>() {
-            @Override
-            public Iterable<ImageMetadata> call(ArticleInfo articleInfo) throws Exception {
-                HashMap<Color, ImageMetadata> colorMap = new HashMap<>();
+        JavaRDD<ImageMetadata> ims =
+                articleInfos
+                        .flatMap(new ImageMetadataComputeFlatMapFunction(b))
+                        .filter(new ImageMetadataFilterFunction());
 
-                FileSystem fileSystem = FileSystem.newInstance(sc.hadoopConfiguration());
-                FSDataInputStream fs = fileSystem.open(new Path(articleInfo.getImagePath()));
-                BufferedImage image = ImageIO.read(fs);
-
-
-                if (image != null) {
-                    for (int x = 0; x < image.getWidth(); x++) {
-                        for (int y = 0; y < image.getHeight(); y++) {
-                            int color = image.getRGB(x, y);
-                            int red = (color & 0x00ff0000) >> 16;
-                            int green = (color & 0x0000ff00) >> 8;
-                            int blue = color & 0x000000ff;
-                            Color c = new Color(red, green, blue);
-
-                            if (colorMap.containsKey(c)) {
-                                colorMap.get(c).incrementCount();
-                            }
-                            else {
-                                Jedis jedis = Util.getJedis().getResource();
-                                colorMap.put(c, new ImageMetadata(Integer.parseInt(jedis.get(c.toString())), b.value().get(articleInfo.getUrl()), new Date()));
-                                jedis.close();
-                            }
-                        }
-                    }
-                }
-                fileSystem.close();
-                return colorMap.values();
-            }
-        }).filter(new Function<ImageMetadata, Boolean>() {
-            @Override
-            public Boolean call(ImageMetadata imageMetadata) throws Exception {
-                return imageMetadata.getCount() > PERFORMANCE_THRESHOLD && imageMetadata.getArticleId() != null;
-            }
-        });
         ims.saveAsTextFile(IMAGE_METADATA_OUTPUT_PATH);
-        sc.close();
+        Util.getSc().close();
     }
 
     private static String trimQuotes(String s) {
