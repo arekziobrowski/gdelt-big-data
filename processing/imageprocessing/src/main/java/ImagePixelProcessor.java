@@ -34,6 +34,7 @@ public class ImagePixelProcessor {
 
     private static final String RUN_CONTROL_DATE_PLACEHOLDER = "{RUN_CONTROL_DATE}";
     private static final String DELIMITER = "\t";
+    private static final int PERFORMANCE_THRESHOLD = 10;
 
     private static final JavaSparkContext sc = new JavaSparkContext(new SparkConf()
             .setMaster("local[2]")
@@ -106,7 +107,6 @@ public class ImagePixelProcessor {
             @Override
             public Iterable<ImageMetadata> call(ArticleInfo articleInfo) throws Exception {
                 HashMap<Color, ImageMetadata> colorMap = new HashMap<>();
-                // BufferedImage image = ImageIO.read(new File(articleInfo.getImagePath()));
 
                 FileSystem fileSystem = FileSystem.newInstance(sc.hadoopConfiguration());
                 FSDataInputStream fs = fileSystem.open(new Path(articleInfo.getImagePath()));
@@ -126,7 +126,6 @@ public class ImagePixelProcessor {
                                 colorMap.get(c).incrementCount();
                             }
                             else {
-                                //colorMap.put(c, new ImageMetadata(1, b.value().get(articleInfo.getUrl()), new Date()));
                                 Jedis jedis = Util.getJedis().getResource();
                                 colorMap.put(c, new ImageMetadata(Integer.parseInt(jedis.get(c.toString())), b.value().get(articleInfo.getUrl()), new Date()));
                                 jedis.close();
@@ -137,8 +136,12 @@ public class ImagePixelProcessor {
                 fileSystem.close();
                 return colorMap.values();
             }
+        }).filter(new Function<ImageMetadata, Boolean>() {
+            @Override
+            public Boolean call(ImageMetadata imageMetadata) throws Exception {
+                return imageMetadata.getCount() > PERFORMANCE_THRESHOLD && imageMetadata.getArticleId() != null;
+            }
         });
-
         ims.saveAsTextFile(IMAGE_METADATA_OUTPUT_PATH);
         sc.close();
     }
