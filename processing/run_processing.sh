@@ -18,7 +18,7 @@ function success() {
 
 function help() {
     echo -e "${BOLD}Create RUN_CONTROL_DATE tech file. ${RESET}"
-    echo -e "${BOLD}Usage${RESET}: ./run_processing.sh [csv|json|rake] [PATH TO JAR]"
+    echo -e "${BOLD}Usage${RESET}: ./run_processing.sh [csv|json|rake|country|article] [PATH TO JAR]"
 }
 
 function main {
@@ -31,7 +31,8 @@ function main {
     case $1 in
         csv)
             success "Starting csv clean-up map reduce job..."
-            hadoop jar $2 CsvCleanUp ${RUN_CONTROL_DATE}
+            # hadoop jar $2 CsvCleanUp ${RUN_CONTROL_DATE}
+            sudo -u hdfs spark-submit --class "CsvCleanUp" --master yarn --deploy-mode client $2 ${RUN_CONTROL_DATE}
         ;;
         json)
             success "Starting article-info.json Clean-up job..."
@@ -45,6 +46,10 @@ function main {
             success "Starting country mapping job..."
             spark-submit --class "CountryMapper" --master yarn --deploy-mode client $2 ${RUN_CONTROL_DATE}
         ;;
+        article)
+            success "Starting article mapping job..."
+            spark-submit --class "ArticleMapping" --master yarn --deploy-mode client $2 ${RUN_CONTROL_DATE}
+        ;;
     esac
 }
 
@@ -53,7 +58,7 @@ then
     help
     exit 0
 fi
-if ! [[ $1 =~ ^(csv|json|rake|country)$ ]]
+if ! [[ $1 =~ ^(csv|json|rake|country|article)$ ]]
 then
     help
     exit 0
