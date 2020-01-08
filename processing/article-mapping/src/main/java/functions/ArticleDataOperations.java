@@ -6,6 +6,7 @@ import org.apache.spark.api.java.function.PairFunction;
 import scala.Tuple2;
 
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 
 public class ArticleDataOperations {
 
@@ -35,7 +36,7 @@ public class ArticleDataOperations {
                         new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(spl[1]),
                         new SimpleDateFormat("yyyy-MM-dd").parse(spl[2]),
                         spl[3],
-                        Integer.parseInt(spl[8]),
+                        Double.parseDouble(spl[8]),
                         spl[11]);
             } catch (Exception e) {
                 return null;

@@ -20,14 +20,14 @@ public class Article implements Serializable {
     // ArticleApiInfo language
     private String language;
     // ArticleData averageTone
-    private int tone;
+    private Double tone;
     // ArticleData countryCode
     private String countryId;
     // now()
     private Date loadDate;
 
     public Article(String title, String url, Date datePublished, Date dateEvent, String topic,
-                   String language, int tone, String countryId) {
+                   String language, Double tone, String countryId) {
         this.title = title;
         this.url = url;
         this.datePublished = datePublished;
@@ -100,11 +100,11 @@ public class Article implements Serializable {
         this.language = language;
     }
 
-    public int getTone() {
+    public Double getTone() {
         return tone;
     }
 
-    public void setTone(int tone) {
+    public void setTone(Double tone) {
         this.tone = tone;
     }
 

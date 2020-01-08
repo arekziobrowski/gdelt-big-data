@@ -11,11 +11,11 @@ public class ArticleData implements Serializable {
     private Date dateAdded;
     private Date eventDate;
     private String eventCode;       // key in2 - topic
-    private int averageTone;
+    private Double averageTone;
     private String countryCode;
 
 
-    public ArticleData(String sourceUrl, Date dateAdded, Date eventDate, String eventCode, int averageTone, String countryCode) {
+    public ArticleData(String sourceUrl, Date dateAdded, Date eventDate, String eventCode, Double averageTone, String countryCode) {
         this.sourceUrl = sourceUrl;
         this.dateAdded = dateAdded;
         this.eventDate = eventDate;
@@ -77,11 +77,11 @@ public class ArticleData implements Serializable {
         this.dateAdded = dateAdded;
     }
 
-    public int getAverageTone() {
+    public Double getAverageTone() {
         return averageTone;
     }
 
-    public void setAverageTone(int averageTone) {
+    public void setAverageTone(Double averageTone) {
         this.averageTone = averageTone;
     }
 

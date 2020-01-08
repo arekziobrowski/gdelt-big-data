@@ -13,11 +13,11 @@ public class ArticleApiInfoAndArticleData implements Serializable {
     private Date dateEvent;
     private String eventCode;       // key in2 - topic
     private String language;
-    private int tone;
+    private Double tone;
     private String countryId;
 
     public ArticleApiInfoAndArticleData(String title, String url, Date datePublished, Date dateEvent, String eventCode,
-                                        String language, int tone, String countryId) {
+                                        String language, Double tone, String countryId) {
         this.title = title;
         this.url = url;
         this.datePublished = datePublished;
@@ -88,11 +88,11 @@ public class ArticleApiInfoAndArticleData implements Serializable {
         this.language = language;
     }
 
-    public int getTone() {
+    public Double getTone() {
         return tone;
     }
 
-    public void setTone(int tone) {
+    public void setTone(Double tone) {
         this.tone = tone;
     }
 
