@@ -19,6 +19,20 @@ public class EventCode implements Serializable {
                 + Objects.toString(eventDescription, "");
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null || obj.getClass() != this.getClass()) {
+            return false;
+        }
+
+        EventCode o = (EventCode) obj;
+        return Objects.equals(cameoEventCode, o.cameoEventCode) &&
+                Objects.equals(eventDescription, o.eventDescription);
+    }
+
     public String getCameoEventCode() {
         return cameoEventCode;
     }

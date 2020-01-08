@@ -1,18 +1,13 @@
 package models;
 
 import java.io.Serializable;
-import java.text.SimpleDateFormat;
 import java.util.Objects;
 
 public class ArticleApiInfo implements Serializable {
 
     private String url;
     private String title;
-    //    private Date seenDate;
     private String language;
-//    private String sourceCountry;
-//    private String imagePath;
-//    private String textPath;
 
     public ArticleApiInfo(String url, String title, String language) {
         this.url = url;
@@ -25,6 +20,21 @@ public class ArticleApiInfo implements Serializable {
         return Objects.toString(url, "") + '\t'
                 + Objects.toString(title, "") + '\t'
                 + Objects.toString(language, "");
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null || obj.getClass() != this.getClass()) {
+            return false;
+        }
+
+        ArticleApiInfo o = (ArticleApiInfo) obj;
+        return Objects.equals(url, o.url) &&
+                Objects.equals(title, o.title) &&
+                Objects.equals(language, o.language);
     }
 
     public String getUrl() {

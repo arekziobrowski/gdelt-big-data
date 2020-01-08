@@ -7,25 +7,19 @@ import java.util.Objects;
 
 public class ArticleData implements Serializable {
 
-    // key in1
-    private String sourceUrl;
+    private String sourceUrl;   // key in1
     private Date dateAdded;
     private Date eventDate;
-    // key in2
-    private String eventCode;       // topic
-    //    private float goldsteinScale;
-//    private int numMentions;
-//    private int numArticles;
-//    private int numSources;
+    private String eventCode;       // key in2 - topic
     private int averageTone;
-    //    private String geoType;
-//    private String geoFullName;
     private String countryCode;
 
-    public ArticleData(String sourceUrl, Date dateAdded, Date eventDate, int averageTone, String countryCode) {
+
+    public ArticleData(String sourceUrl, Date dateAdded, Date eventDate, String eventCode, int averageTone, String countryCode) {
         this.sourceUrl = sourceUrl;
         this.dateAdded = dateAdded;
         this.eventDate = eventDate;
+        this.eventCode = eventCode;
         this.averageTone = averageTone;
         this.countryCode = countryCode;
     }
@@ -35,9 +29,29 @@ public class ArticleData implements Serializable {
         return Objects.toString(sourceUrl, "") + '\t'
                 + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(dateAdded) + '\t'
                 + new SimpleDateFormat("yyyy-MM-dd").format(eventDate) + '\t'
+                + Objects.toString(eventCode, "") + '\t'
                 + Objects.toString(averageTone, "") + '\t'
                 + Objects.toString(countryCode, "");
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null || obj.getClass() != this.getClass()) {
+            return false;
+        }
+
+        ArticleData o = (ArticleData) obj;
+        return Objects.equals(sourceUrl, o.sourceUrl) &&
+                Objects.equals(dateAdded, o.dateAdded) &&
+                Objects.equals(eventDate, o.eventDate) &&
+                Objects.equals(eventCode, o.eventCode) &&
+                Objects.equals(averageTone, o.averageTone) &&
+                Objects.equals(countryCode, o.countryCode);
+    }
+
 
     public Date getEventDate() {
         return eventDate;

@@ -5,38 +5,27 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Objects;
 
-public class Article implements Serializable {
+public class ArticleApiInfoAndArticleData implements Serializable {
 
-    // ArticleApiInfo title
     private String title;
-    // ArticleApiInfo url
     private String url;
-    // ArticleData dateAdded
     private Date datePublished;
-    // ArticleData eventDate
     private Date dateEvent;
-    // EventCode eventDescription
-    private String topic;
-    // ArticleApiInfo language
+    private String eventCode;       // key in2 - topic
     private String language;
-    // ArticleData averageTone
     private int tone;
-    // ArticleData countryCode
     private String countryId;
-    // now()
-    private Date loadDate;
 
-    public Article(String title, String url, Date datePublished, Date dateEvent, String topic,
-                   String language, int tone, String countryId) {
+    public ArticleApiInfoAndArticleData(String title, String url, Date datePublished, Date dateEvent, String eventCode,
+                                        String language, int tone, String countryId) {
         this.title = title;
         this.url = url;
         this.datePublished = datePublished;
         this.dateEvent = dateEvent;
-        this.topic = topic;
+        this.eventCode = eventCode;
         this.language = language;
         this.tone = tone;
         this.countryId = countryId;
-        this.loadDate = new Date();
     }
 
     @Override
@@ -45,11 +34,10 @@ public class Article implements Serializable {
                 + Objects.toString(url, "") + '\t'
                 + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(datePublished) + '\t'
                 + new SimpleDateFormat("yyyy-MM-dd").format(dateEvent) + '\t'
-                + Objects.toString(topic, "") + '\t'
+                + Objects.toString(eventCode, "") + '\t'
                 + Objects.toString(language, "") + '\t'
                 + Objects.toString(tone, "") + '\t'
-                + Objects.toString(countryId, "") + '\t'
-                + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(loadDate) + "SEPARATOR";
+                + Objects.toString(countryId, "");
     }
 
     public String getTitle() {
@@ -84,12 +72,12 @@ public class Article implements Serializable {
         this.dateEvent = dateEvent;
     }
 
-    public String getTopic() {
-        return topic;
+    public String getEventCode() {
+        return eventCode;
     }
 
-    public void setTopic(String topic) {
-        this.topic = topic;
+    public void setEventCode(String eventCode) {
+        this.eventCode = eventCode;
     }
 
     public String getLanguage() {
@@ -115,13 +103,4 @@ public class Article implements Serializable {
     public void setCountryId(String countryId) {
         this.countryId = countryId;
     }
-
-    public Date getLoadDate() {
-        return loadDate;
-    }
-
-    public void setLoadDate(Date loadDate) {
-        this.loadDate = loadDate;
-    }
-
 }
