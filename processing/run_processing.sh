@@ -24,7 +24,7 @@ function help() {
 function main {
     hdfs dfs -test -e $RUN_CONTROL_DATE_PATH
     if [ $? != 0 ] ; then
-        error "File with RUN_CONTROL_DATE doesn not exist"
+        error "File with RUN_CONTROL_DATE does not exist"
         exit 1
     fi
     RUN_CONTROL_DATE=`hdfs dfs -cat $RUN_CONTROL_DATE_PATH`
@@ -50,6 +50,9 @@ function main {
             success "Starting article mapping job..."
             spark-submit --class "ArticleMapping" --master yarn --deploy-mode client $2 ${RUN_CONTROL_DATE}
         ;;
+        image)
+            success "Starting image mapping job..."
+            spark-submit --class "ImagePixelProcessor" --master yarn --deploy-mode client $2 ${RUN_CONTROL_DATE}
     esac
 }
 
@@ -58,7 +61,7 @@ then
     help
     exit 0
 fi
-if ! [[ $1 =~ ^(csv|json|rake|country|article)$ ]]
+if ! [[ $1 =~ ^(csv|json|rake|country|article|image)$ ]]
 then
     help
     exit 0
