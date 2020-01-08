@@ -1,7 +1,11 @@
+DROP TABLE article;
+
+
 -- country
 CREATE OR REPLACE TABLE country (
-    id INT NOT NULL AUTO_INCREMENT,
+    id CHAR(2) NOT NULL,
     name VARCHAR(255) NOT NULL,
+    load_date TIMESTAMP NOT NULL,
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
@@ -16,7 +20,7 @@ CREATE OR REPLACE TABLE article (
     language VARCHAR(30),
     tone DECIMAL(9,5),
     load_date TIMESTAMP NOT NULL,
-    country_id INT NOT NULL,
+    country_id CHAR(2) NOT NULL,
     PRIMARY KEY (id),
     FOREIGN KEY (country_id)
         REFERENCES country (id),
@@ -75,7 +79,7 @@ CREATE OR REPLACE TABLE country_tone(
     end_date DATE,
     mood VARCHAR(255),
     load_date TIMESTAMP NOT NULL,
-    country_id INT NOT NULL,
+    country_id CHAR(2) NOT NULL,
     PRIMARY KEY (id),
     FOREIGN KEY (country_id)
         REFERENCES country (id)
