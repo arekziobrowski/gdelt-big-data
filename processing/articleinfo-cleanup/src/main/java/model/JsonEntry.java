@@ -1,6 +1,7 @@
 package model;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 public class JsonEntry implements Serializable {
     private static final long serialVersionUID = 1L;
@@ -109,5 +110,18 @@ public class JsonEntry implements Serializable {
     public JsonEntry withImagePath(String imagePath) {
         this.imagePath = imagePath;
         return this;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        JsonEntry jsonEntry = (JsonEntry) o;
+        return Objects.equals(url, jsonEntry.url);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(url);
     }
 }

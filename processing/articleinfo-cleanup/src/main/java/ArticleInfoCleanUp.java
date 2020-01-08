@@ -58,6 +58,7 @@ public class ArticleInfoCleanUp {
         SQLContext sqlContext = new SQLContext(sc);
         DataFrame df = sqlContext.read().json(jsonExampleData);
         final JavaPairRDD<JsonEntry, String> entriesWithArticles = df.toJavaRDD().flatMap(new RowToJsonEntryFlatMapFunction())
+                .distinct()
                 .filter(new UrlAndSocialImageNotEmptyFilter())
                 .mapToPair(new TextDownloadMapFunction(OUT_DIR_ARTICLES))
                 .filter(new ArticleContentNotEmptyFilter()).cache();
