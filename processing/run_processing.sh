@@ -18,7 +18,7 @@ function success() {
 
 function help() {
     echo -e "${BOLD}Create RUN_CONTROL_DATE tech file. ${RESET}"
-    echo -e "${BOLD}Usage${RESET}: ./run_processing.sh [distinct|csv|json|rake|country|article] [PATH TO JAR]"
+    echo -e "${BOLD}Usage${RESET}: ./run_processing.sh [distinct|csv|json|rake|country|article|image] [PATH TO JAR]"
 }
 
 function main {

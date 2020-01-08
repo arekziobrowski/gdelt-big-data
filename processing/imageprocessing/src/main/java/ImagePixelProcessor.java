@@ -71,7 +71,14 @@ public class ImagePixelProcessor {
 
         JavaRDD<ArticleInfo> articleInfos =
             Util.getSc().textFile(ARTICLES_API_INFO_CLEANSED_PATH)
-            .map(new ArticleInfoSplitFunction()).cache();
+            .map(new ArticleInfoSplitFunction())
+            .filter(new Function<ArticleInfo, Boolean>() {
+                @Override
+                public Boolean call(ArticleInfo articleInfo) throws Exception {
+                    return articleInfo.getImagePath() != null && !articleInfo.getImagePath().isEmpty();
+                }
+            })
+            .cache();
 
         JavaRDD<Image> images = articleInfos.map(new ImageMapFunction(b));
 
