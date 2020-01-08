@@ -1,21 +1,22 @@
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
-import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
+import java.io.IOException;
 import java.net.URI;
 
-public class CsvCleanUp {
-    private static final String IN_PATH = "/etl/staging/cleansed/{RUN_CONTROL_DATE}/distinct/";
-    private static final String OUT_PATH = "/etl/staging/cleansed/{RUN_CONTROL_DATE}/cleaned/";
-    private static final String CAMEO_PATH = "/data/gdelt/{RUN_CONTROL_DATE}/cameo/CAMEO.country.txt";
-    private static final String JOB_NAME = "csv-clean-up";
+public class CsvDistinct {
+    private static final String IN_PATH = "/data/gdelt/{RUN_CONTROL_DATE}/csv/";
+    private static final String OUT_PATH = "/etl/staging/cleansed/{RUN_CONTROL_DATE}/distinct/";
+    private static final String JOB_NAME = "csv-distinct";
 
     public static void main(String[] args) throws Exception {
         if (args.length == 0 || !args[0].matches("[0-9]{8}")) {
@@ -30,21 +31,36 @@ public class CsvCleanUp {
         fs.delete(outputPath, true);
 
         Job job = Job.getInstance(conf, JOB_NAME);
-        job.setJarByClass(CsvCleanUp.class);
-        job.setMapperClass(CsvMapper.class);
-        job.setReducerClass(TwoFilesReducer.class);
+        job.setJarByClass(CsvDistinct.class);
+        job.setMapperClass(UrlMapper.class);
+        job.setReducerClass(DistinctReducer.class);
         job.setOutputValueClass(Text.class);
         job.setOutputKeyClass(NullWritable.class);
         job.setMapOutputKeyClass(Text.class);
         job.setMapOutputValueClass(Text.class);
-//        Cached CAMEO file and output files
-        job.addCacheFile(new Path(CAMEO_PATH.replace("{RUN_CONTROL_DATE}", RUN_CONTROL_DATE)).toUri());
-        job.getConfiguration().setStrings("data_file", "articles-data-cleansed.dat");
-        job.getConfiguration().setStrings("reject_file", "articles-data-cleansed.reject");
 
         FileInputFormat.setInputPaths(job, new Path(IN_PATH.replace("{RUN_CONTROL_DATE}", RUN_CONTROL_DATE)));
         FileOutputFormat.setOutputPath(job, new Path(OUT_PATH.replace("{RUN_CONTROL_DATE}", RUN_CONTROL_DATE)));
-        MultipleOutputs.addNamedOutput(job, "out", TextOutputFormat.class, NullWritable.class, Text.class);
         System.exit(job.waitForCompletion(true) ? 0 : 1);
+    }
+
+    static class UrlMapper extends Mapper<LongWritable, Text, Text, Text> {
+        private static final int CSV_COLUMN_NUMBER = 61;
+        private static final int URL_COLUMN_NUMBER = 60;
+
+        @Override
+        protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
+            String[] splitted = value.toString().split("\t", CSV_COLUMN_NUMBER);
+            if (splitted.length == CSV_COLUMN_NUMBER && !splitted[URL_COLUMN_NUMBER].isEmpty())
+                context.write(new Text(splitted[URL_COLUMN_NUMBER]), value);
+        }
+    }
+
+    static class DistinctReducer extends Reducer<Text, Text, NullWritable, Text> {
+        @Override
+        protected void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
+            final Text firstUrlOccurrence = values.iterator().next();
+            context.write(NullWritable.get(), firstUrlOccurrence);
+        }
     }
 }

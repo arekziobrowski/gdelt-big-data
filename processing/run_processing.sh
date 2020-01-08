@@ -18,7 +18,7 @@ function success() {
 
 function help() {
     echo -e "${BOLD}Create RUN_CONTROL_DATE tech file. ${RESET}"
-    echo -e "${BOLD}Usage${RESET}: ./run_processing.sh [csv|json|rake|country|article] [PATH TO JAR]"
+    echo -e "${BOLD}Usage${RESET}: ./run_processing.sh [distinct|csv|json|rake|country|article] [PATH TO JAR]"
 }
 
 function main {
@@ -29,10 +29,14 @@ function main {
     fi
     RUN_CONTROL_DATE=`hdfs dfs -cat $RUN_CONTROL_DATE_PATH`
     case $1 in
+        distinct)
+            success "Starting csv distinct map reduce job..."
+            hadoop jar $2 CsvDistinct ${RUN_CONTROL_DATE}
+        ;;
         csv)
             success "Starting csv clean-up map reduce job..."
-            # hadoop jar $2 CsvCleanUp ${RUN_CONTROL_DATE}
-            sudo -u hdfs spark-submit --class "CsvCleanUp" --master yarn --deploy-mode client $2 ${RUN_CONTROL_DATE}
+            hadoop jar $2 CsvCleanUp ${RUN_CONTROL_DATE}
+            #sudo -u hdfs spark-submit --class "CsvCleanUp" --master yarn --deploy-mode client $2 ${RUN_CONTROL_DATE}
         ;;
         json)
             success "Starting article-info.json Clean-up job..."
@@ -61,7 +65,8 @@ then
     help
     exit 0
 fi
-if ! [[ $1 =~ ^(csv|json|rake|country|article|image)$ ]]
+
+if ! [[ $1 =~ ^(distinct|csv|json|rake|country|article|image)$ ]]
 then
     help
     exit 0
