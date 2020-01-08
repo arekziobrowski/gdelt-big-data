@@ -1,8 +1,3 @@
-import models.EventCode;
-import org.junit.Assert;
-import org.junit.Test;
-import scala.Tuple2;
-
 public class ArticleMappingTest {
 
 //    @Test

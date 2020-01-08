@@ -49,7 +49,7 @@ public class Article implements Serializable {
                 + Objects.toString(language, "") + '\t'
                 + Objects.toString(tone, "") + '\t'
                 + Objects.toString(countryId, "") + '\t'
-                + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(loadDate) + "SEPARATOR";
+                + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(loadDate);
     }
 
     public String getTitle() {

@@ -18,7 +18,8 @@ for type in TYPES:
     if hdfs.exists(path):
         continue
     cameoResponse = urllib2.urlopen(URL.replace('{type}',type))
-    cameoContent = cameoResponse.read()
+    tmp = cameoResponse.read().split('\n')[1:]
+    cameoContent = '\n'.join(tmp)
     hdfs.write(path, cameoContent)
 
 def getCountries():
@@ -35,4 +36,15 @@ def getCountries():
             countries.append(splitted[0]+'\t'+splitted[2])
     hdfs.write(path, '\n'.join(countries))
 
+def getStopWords():
+    URL = 'https://raw.githubusercontent.com/aneesha/RAKE/master/SmartStoplist.txt';
+    PATH = '/tech/STOPWORDS.txt'
+    if hdfs.exists(path):
+        return
+    response = urllib2.urlopen(URL)
+    content = response.read()
+    stopWords = content.split('\n')[1:-1]
+    hdfs.write(path, '\n'.join(stopWords))
+
 getCountries()
+getStopWords()
