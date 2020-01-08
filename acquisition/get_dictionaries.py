@@ -38,7 +38,7 @@ def getCountries():
 
 def getStopWords():
     URL = 'https://raw.githubusercontent.com/aneesha/RAKE/master/SmartStoplist.txt';
-    PATH = '/tech/STOPWORDS.txt'
+    path = '/tech/STOPWORDS.txt'
     if hdfs.exists(path):
         return
     response = urllib2.urlopen(URL)
