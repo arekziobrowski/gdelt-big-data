@@ -17,7 +17,7 @@ public class ArticleMapping {
     private static final String OUTPUT_FILES_PREFIX = "article.dat-";
     private static final String RUN_CONTROL_DATE_PLACEHOLDER = "{RUN_CONTROL_DATE}";
     private static final Integer PARTITIONS_NUMBER = 4;
-    private static String INPUT_FILES_ARTICLES_DATA_CLEANSED_PATTERN = "/etl/staging/cleansed/{RUN_CONTROL_DATE}/articles-data-cleansed.dat-*";
+    private static String INPUT_FILES_ARTICLES_DATA_CLEANSED_PATTERN = "/etl/staging/cleansed/{RUN_CONTROL_DATE}/cleaned/articles-data-cleansed.dat-*";
     private static String INPUT_FILE_ARTICLES_API_INFO_CLEANSED_PATTERN = "/etl/staging/cleansed/{RUN_CONTROL_DATE}/api/articles-api-info-cleansed.dat-*";
     private static String INPUT_FILE_CAMEO_EVENT_CODES = "/data/gdelt/{RUN_CONTROL_DATE}/cameo/CAMEO.eventcodes.txt";
     private static String OUT_DIR = "/etl/staging/load/{RUN_CONTROL_DATE}/article/";
