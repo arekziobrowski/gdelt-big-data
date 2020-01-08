@@ -25,6 +25,8 @@ public class ArticleMapping {
 
     private static final String RUN_CONTROL_DATE_PLACEHOLDER = "{RUN_CONTROL_DATE}";
 
+    private static final Integer PARTITIONS_NUMBER = 4;
+
     public static void main(String[] args) throws Exception {
         if (args.length == 0 || !args[0].matches("[0-9]{8}")) {
             System.err.println("Provide RUN_CONTROL_DATE with args[].");
@@ -46,11 +48,12 @@ public class ArticleMapping {
 
         // CLEANING ARTICLE.DAT* FILES
         FileSystem fileSystem = FileSystem.get(sc.hadoopConfiguration());
-        fileSystem.delete(new Path(OUT_DIR + OUTPUT_FILES_PREFIX + "*"), true);
+        fileSystem.delete(new Path(OUT_DIR), true);
         fileSystem.close();
 
         // PROCESSING
         JavaPairRDD<String, ArticleData> articleData = sc.textFile(INPUT_FILES_ARTICLES_DATA_CLEANSED_PATTERN)
+                .repartition(PARTITIONS_NUMBER)
                 .distinct()
                 .map(new MapArticleDataToArticleData())
                 .filter(new ArticleDataNotNullFilter())
@@ -61,6 +64,7 @@ public class ArticleMapping {
 
 
         JavaPairRDD<String, EventCode> eventCodes = sc.textFile(INPUT_FILE_CAMEO_EVENTCODES)
+                .repartition(PARTITIONS_NUMBER)
                 .distinct()
                 .map(new MapEventCodeToEventCode())
                 .filter(new EventCodeNotNullFilter())
@@ -72,6 +76,7 @@ public class ArticleMapping {
 
         // API_INFO has the biggest amount of data, so it won't be broadcasted
         JavaPairRDD<String, ArticleApiInfo> articleApiInfo = sc.textFile(INPUT_FILE_ARTICLES_API_INFO_CLEANSED_PATTERN)
+                .repartition(PARTITIONS_NUMBER)
                 .distinct()
                 .map(new MapArticleApiInfoToArticleApiInfo())
                 .filter(new ArticleApiInfoNotNullFilter())
