@@ -28,4 +28,8 @@ public class Util {
 
         return jedis;
     }
+
+    public static void setJedis(JedisPool jedis) {
+        Util.jedis = jedis;
+    }
 }
