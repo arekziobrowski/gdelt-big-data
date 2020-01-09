@@ -3,6 +3,7 @@ package model;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Objects;
 
 
 public class CameoCountry implements Serializable {
@@ -16,6 +17,19 @@ public class CameoCountry implements Serializable {
         this.id = code;
         this.name = label;
         this.loadDate = new Date();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CameoCountry cameoCountry = (CameoCountry) o;
+        return Objects.equals(id, cameoCountry.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 
     public String getId() {

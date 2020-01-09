@@ -1,20 +1,21 @@
+import functions.CameoCountryNotNullFilter;
+import functions.MapCameoCountryToCameoCountry;
 import model.CameoCountry;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.function.Function;
 
 import java.io.IOException;
 
 public class CountryMapper {
+    private final static String OUTPUT_FILES_PREFIX = "country.dat-";
+    private static final String DELIMITER = "\t";
     private static String INPUT_FILE = "/data/gdelt/{RUN_CONTROL_DATE}/cameo/CAMEO.country.txt";
     private static String OUT_DIR = "/etl/staging/load/{RUN_CONTROL_DATE}/";
-    private final static String OUTPUT_FILES_PREFIX = "country.dat-";
-
-    private static final String DELIMITER = "\t";
 
     public static void main(String[] args) throws IOException {
         if (args.length == 0 || !args[0].matches("[0-9]{8}")) {
@@ -34,33 +35,27 @@ public class CountryMapper {
         fileSystem.delete(new Path(OUT_DIR), true);
         fileSystem.close();
 
-        sc.textFile(INPUT_FILE).map(new Function<String, CameoCountry>() {
-            @Override
-            public CameoCountry call(String s) throws Exception {
-                return stringToCameoCountry(s);
-            }
-        }).saveAsTextFile(OUT_DIR);
+        JavaRDD<CameoCountry> cameoCountry = sc.textFile(INPUT_FILE)
+                .distinct()
+                .map(new MapCameoCountryToCameoCountry())
+                .filter(new CameoCountryNotNullFilter())
+                .distinct()
+                .cache();
 
-        renameOutputFiles(OUT_DIR, hadoopConfiguration, OUTPUT_FILES_PREFIX);
+        cameoCountry.saveAsTextFile(OUT_DIR);
+        renameOutputFiles(OUT_DIR, hadoopConfiguration);
+
         fileSystem.close();
         sc.close();
     }
 
-    private static CameoCountry stringToCameoCountry(String s) {
-        String[] spl = s.split(DELIMITER);
-        return new CameoCountry(
-                spl[0],
-                spl[1]
-        );
-    }
-
-    private static void renameOutputFiles(String outputPath, Configuration hadoopConfiguration, String newPrefix)
+    private static void renameOutputFiles(String outputPath, Configuration hadoopConfiguration)
             throws IOException {
         FileSystem fileSystem = FileSystem.get(hadoopConfiguration);
         FileStatus[] partFileStatuses = fileSystem.globStatus(new Path(outputPath + "part*"));
         for (FileStatus fs : partFileStatuses) {
             String name = fs.getPath().getName();
-            fileSystem.rename(new Path(outputPath + name), new Path(outputPath + newPrefix + name));
+            fileSystem.rename(new Path(outputPath + name), new Path(outputPath + CountryMapper.OUTPUT_FILES_PREFIX + name));
         }
         fileSystem.close();
     }
