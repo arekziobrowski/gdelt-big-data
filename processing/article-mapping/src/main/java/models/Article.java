@@ -41,9 +41,9 @@ public class Article implements Serializable {
 
     @Override
     public String toString() {
-        return Objects.toString(title, "") + '\t'
+        return "null" + '\t' + Objects.toString(title, "") + '\t'
                 + Objects.toString(url, "") + '\t'
-                + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(datePublished) + '\t'
+                + new SimpleDateFormat("yyyy-MM-dd").format(datePublished) + '\t'
                 + new SimpleDateFormat("yyyy-MM-dd").format(dateEvent) + '\t'
                 + Objects.toString(topic, "") + '\t'
                 + Objects.toString(language, "") + '\t'

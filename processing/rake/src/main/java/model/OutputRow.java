@@ -52,7 +52,7 @@ public class OutputRow implements Serializable {
 
     @Override
     public String toString() {
-        return Objects.toString(phrase, "") + '\t' + Objects.toString(score, "") + '\t'
-                + Objects.toString(loadDate, "") + '\t' + Objects.toString(articleId, "");
+        return "null" + '\t' + Objects.toString(phrase, "") + '\t' + Objects.toString(score, "") + '\t'
+                + Objects.toString(articleId, "") + '\t' + Objects.toString(loadDate, "");
     }
 }

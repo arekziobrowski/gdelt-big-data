@@ -58,8 +58,8 @@ public class CameoCountry implements Serializable {
 
     @Override
     public String toString() {
-        return id + "\t" +
-                name + "\t" +
+        return id + '\t' +
+                name + '\t' +
                 new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(loadDate);
     }
 }

@@ -21,9 +21,9 @@ public class ImageMetadata implements Serializable {
     @Override
     public String toString() {
         return count
-                + "\t" + colorId
-                + "\t" + articleId
-                + "\t" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(loadDate);
+                + '\t' + colorId
+                + '\t' + articleId
+                + '\t' + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(loadDate);
     }
 
     public void incrementCount() {
