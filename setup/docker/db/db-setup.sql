@@ -53,6 +53,7 @@ CREATE OR REPLACE TABLE image_metadata (
     color_metadata_id INT NOT NULL,
     article_id INT NOT NULL,
     load_date TIMESTAMP NOT NULL,
+    PRIMARY KEY (article_id, color_metadata_id),
     FOREIGN KEY (article_id)
         REFERENCES article (id),
     FOREIGN KEY (color_metadata_id)
@@ -63,7 +64,7 @@ CREATE OR REPLACE TABLE image_metadata (
 CREATE OR REPLACE TABLE article_keyword(
     id INT NOT NULL AUTO_INCREMENT,
     keyword VARCHAR(255) NOT NULL,
-    score DECIMAL(4,2) NOT NULL,
+    score DECIMAL(9,2) NOT NULL,
     article_id INT NOT NULL,
     load_date TIMESTAMP NOT NULL,
     PRIMARY KEY (id),

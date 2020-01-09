@@ -3,6 +3,7 @@ package model;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Objects;
 
 public class ImageMetadata implements Serializable {
 
@@ -20,9 +21,9 @@ public class ImageMetadata implements Serializable {
 
     @Override
     public String toString() {
-        return count
-                + '\t' + colorId
-                + '\t' + articleId
+        return Objects.toString(count, "")
+                + '\t' + Objects.toString(colorId, "")
+                + '\t' + Objects.toString(articleId, "")
                 + '\t' + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(loadDate);
     }
 

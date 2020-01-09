@@ -1,26 +1,18 @@
 import functions.*;
 import model.ArticleInfo;
-import model.Color;
 import model.Image;
 import model.ImageMetadata;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.spark.HashPartitioner;
-import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.broadcast.Broadcast;
-import redis.clients.jedis.Jedis;
 import utils.Util;
 
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.util.*;
 
 
@@ -28,7 +20,7 @@ import java.util.*;
 public class ImagePixelProcessor {
 
     private static String ARTICLE_LOOKUP_PATH = "/etl/staging/load/{RUN_CONTROL_DATE}/article_lookup.dat";
-    private static String ARTICLES_API_INFO_CLEANSED_PATH = "/etl/staging/cleansed/{RUN_CONTROL_DATE}/api/articles-api-info-cleansed.dat";
+    private static String ARTICLES_API_INFO_CLEANSED_PATH = "/etl/staging/cleansed/{RUN_CONTROL_DATE}/api";
     private static final Integer PARTITIONS_NUMBER = 4;
 
     private static String IMAGE_METADATA_OUTPUT_PATH = "/etl/staging/load/{RUN_CONTROL_DATE}/image_metadata.dat";
@@ -80,7 +72,14 @@ public class ImagePixelProcessor {
             })
             .cache();
 
-        JavaRDD<Image> images = articleInfos.map(new ImageMapFunction(b));
+        JavaRDD<Image> images =
+                articleInfos.map(new ImageMapFunction(b))
+                .filter(new Function<Image, Boolean>() {
+                    @Override
+                    public Boolean call(Image image) throws Exception {
+                        return image.getArticle_id() != null;
+                    }
+                });
 
         images.saveAsTextFile(IMAGE_OUTPUT_PATH);
 
