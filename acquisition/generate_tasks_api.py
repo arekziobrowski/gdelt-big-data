@@ -11,6 +11,7 @@
 import hdfs_utils as hdfs
 import urlparse
 import redis
+import sys
 
 
 RUN_CONTROL_DATE_FILE = '/tech/RUN_CONTROL_DATE.dat'
@@ -55,9 +56,9 @@ IMAGES_DIR = IMAGES_DIR.replace('{RUN_CONTROL_DATE}', RUN_CONTROL_DATE)
 TEXTS_DIR = TEXTS_DIR.replace('{RUN_CONTROL_DATE}', RUN_CONTROL_DATE)
 
 
-def generate_daily_time_slots():
+def generate_daily_time_slots(end_hour=24):
     base_slots = []
-    for hour in [str(h).zfill(2) for h in range(0, 24)]:
+    for hour in [str(h).zfill(2) for h in range(0, int(end_hour))]:
         for minutes in ["00", "30"]:
             time = "{0}{1}{2}".format(hour, minutes, "00")
             base_slots.append(RUN_CONTROL_DATE + time)
@@ -66,7 +67,7 @@ def generate_daily_time_slots():
     for i in range(0, int(len(base_slots))):
         slots.append([base_slots[i], base_slots[(i+1) % (len(base_slots))]])
 
-    slots[-1][1] = "{0}{1}".format(RUN_CONTROL_DATE, "240000")
+    slots[-1][1] = "{0}{1}".format(RUN_CONTROL_DATE, "{}0000".format(str(end_hour).zfill(2)))
 
     return slots
 
@@ -99,8 +100,8 @@ def get_processed_time_slots_from_checkpoint():
     return processed_slots
 
 
-def get_new_tasks_list():
-    time_slots = generate_daily_time_slots()
+def get_new_tasks_list(end_hour=24):
+    time_slots = generate_daily_time_slots(end_hour)
     task_list = []
 
     already_processed_time_slots = get_processed_time_slots_from_checkpoint()
@@ -157,6 +158,11 @@ if not hdfs.exists(API_EXTRACTION_CHECKPOINT_FILE):
                'API_URL|FINISH_DATETIME|FILE_LOCATION')
 
 
-new_tasks = get_new_tasks_list()
+if len(sys.argv) > 1:
+    print("Max hour {}".format(sys.argv[1]))
+    new_tasks = get_new_tasks_list(sys.argv[1])
+else:
+    print("Max hour {}".format(24))
+    new_tasks = get_new_tasks_list()
 
 enqueue_tasks(new_tasks)
