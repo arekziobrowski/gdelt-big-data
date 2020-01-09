@@ -1,6 +1,7 @@
 package functions;
 
 import model.Phrase;
+import org.apache.commons.lang.StringUtils;
 import org.apache.spark.api.java.function.PairFunction;
 import scala.Tuple2;
 
@@ -113,6 +114,8 @@ public class RakePairMapper implements PairFunction<Tuple2<String, String>, Stri
     private String buildStopWordsRegex(List<String> stopWords) {
         StringBuilder patternBuilder = new StringBuilder();
         for (String stopWord : stopWords) {
+            if(StringUtils.trim(stopWord).isEmpty())
+                continue;
             patternBuilder.append("\\b");
             patternBuilder.append(stopWord);
             patternBuilder.append("(?![\\w-])|");

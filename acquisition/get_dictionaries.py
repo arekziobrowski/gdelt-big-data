@@ -43,7 +43,7 @@ def getStopWords():
         return
     response = urllib2.urlopen(URL)
     content = response.read()
-    stopWords = content.split('\n')[1:-1]
+    stopWords = content.split('\n')[1:]
     hdfs.write(path, '\n'.join(stopWords))
 
 getCountries()
