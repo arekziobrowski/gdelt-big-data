@@ -2,6 +2,7 @@ import hdfs_utils as hdfs
 import urllib2
 import datetime
 import redis
+import sys
 
 RUN_CONTROL_PATH = '/tech/RUN_CONTROL_DATE.dat'
 REDIS_URL = 'redis-tasks'
@@ -37,7 +38,18 @@ def getCheckpointsList(path,RUN_CONTROL_DATE):
                 checkpointList.append(fileName)
     return checkpointList
 
-def getNewTasksList(CONTROL_DATE, CHECKPOINT_PATH, MASTREFILE_URL):
+def generate_daily_time_slots(CONTROL_DATE, end_hour=24):
+    base_slots = []
+    for hour in [str(h).zfill(2) for h in range(0, int(end_hour))]:
+        for minutes in ["00", "15", "30", "45"]:
+            time = "{0}{1}{2}".format(hour, minutes, "00")
+            base_slots.append(CONTROL_DATE + time)
+
+    return base_slots
+
+def getNewTasksList(CONTROL_DATE, CHECKPOINT_PATH, MASTREFILE_URL, end_hour=24):
+    time_stamps_to_download = generate_daily_time_slots(CONTROL_DATE, end_hour)
+
     EXPORT_FILE_SUFFIX_MASTER_FILE = '.export.CSV.zip'
 
     checkPointList = getCheckpointsList(CHECKPOINT_PATH,CONTROL_DATE)
@@ -51,13 +63,15 @@ def getNewTasksList(CONTROL_DATE, CHECKPOINT_PATH, MASTREFILE_URL):
             hdfs.log(LOG_PATH,'Invalid record in GDELT MASTER FILE',False)
             continue
         if CONTROL_DATE in gdeltRecord[2] and gdeltRecord[2].endswith(EXPORT_FILE_SUFFIX_MASTER_FILE):
-            hdfs.log(LOG_PATH,'Found record with correct date '+str(gdeltRecord),False)
-            timestamp = gdeltRecord[2].split('/')[-1].split('.')[0]
-            if timestamp in checkPointList:
-                hdfs.log(LOG_PATH, 'Found in checkpoints'+str(gdeltRecord),False)
-            else:
-                taskList.append(gdeltRecord)
-                counter= counter+1
+            for slot in time_stamps_to_download:
+                if slot in gdeltRecord[2]:
+                    hdfs.log(LOG_PATH,'Found record with correct date '+str(gdeltRecord),False)
+                    timestamp = gdeltRecord[2].split('/')[-1].split('.')[0]
+                    if timestamp in checkPointList:
+                        hdfs.log(LOG_PATH, 'Found in checkpoints'+str(gdeltRecord),False)
+                    else:
+                        taskList.append(gdeltRecord)
+                        counter= counter+1
     hdfs.log(LOG_PATH,'#'+str(counter)+' tasks created.',False)
     return taskList
 
@@ -91,6 +105,12 @@ if not hdfs.exists(LOG_PATH):
     hdfs.touch(LOG_PATH)
 generateDirectoriesTree(DATE, DATA_DIR,DATA_SUBDIRS)
 generateDirectoriesTree(DATE,DB_DIR,[])
- 
-NEW_TASKS = getNewTasksList(DATE, CHECKPOINT_PATH, MASTREFILE_URL)
+
+if len(sys.argv) > 1:
+    print("Max hour {}".format(sys.argv[1]))
+    NEW_TASKS = getNewTasksList(DATE, CHECKPOINT_PATH, MASTREFILE_URL, sys.argv[1])
+else:
+    print("Max hour {}".format(24))
+    NEW_TASKS = getNewTasksList(DATE, CHECKPOINT_PATH, MASTREFILE_URL)
+
 enqueueTasks(NEW_TASKS, QUE_NAME)
