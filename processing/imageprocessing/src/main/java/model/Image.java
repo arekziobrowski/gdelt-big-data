@@ -3,6 +3,7 @@ package model;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Objects;
 
 public class Image implements Serializable {
 
@@ -20,7 +21,7 @@ public class Image implements Serializable {
 
     @Override
     public String toString() {
-        return "null" + '\t' + url + '\t' + article_id + '\t' + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(loadDate);
+        return "null" + '\t' + Objects.toString(url, "") + '\t' + Objects.toString(article_id, "") + '\t' + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(loadDate);
     }
 
     public String getId() {
