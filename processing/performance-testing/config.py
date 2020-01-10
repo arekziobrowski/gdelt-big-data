@@ -1,8 +1,7 @@
 class Config:
     # gdelt
-    run_control_date = "20200108"
+    RUN_CONTROL_DATE = "20200108"
 
     # test_config
-    time_windows_small = 1
-    time_window_medium = 5
-    time_windows_big = 10
+    # HOUR_RANGES values can be Integers <1, 24>
+    HOUR_RANGES = [1, 2]

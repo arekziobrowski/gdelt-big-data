@@ -31,12 +31,13 @@ function main {
     case $1 in
         distinct)
             success "Starting csv distinct map reduce job..."
-            hadoop jar $2 CsvDistinct ${RUN_CONTROL_DATE}
+            # hadoop jar $2 CsvDistinct ${RUN_CONTROL_DATE}
+            sudo -u hdfs spark-submit --class "CsvDistinct" --master yarn --deploy-mode client $2 ${RUN_CONTROL_DATE}
         ;;
         csv)
             success "Starting csv clean-up map reduce job..."
-            hadoop jar $2 CsvCleanUp ${RUN_CONTROL_DATE}
-            #sudo -u hdfs spark-submit --class "CsvCleanUp" --master yarn --deploy-mode client $2 ${RUN_CONTROL_DATE}
+            # hadoop jar $2 CsvCleanUp ${RUN_CONTROL_DATE}
+            sudo -u hdfs spark-submit --class "CsvCleanUp" --master yarn --deploy-mode client $2 ${RUN_CONTROL_DATE}
         ;;
         json)
             success "Starting article-info.json Clean-up job..."
