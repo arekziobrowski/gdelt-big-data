@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-FILENAME = "sample_results.txt"
+FILENAME = "sample_results-2.txt"
 
 with open(FILENAME, "r") as file:
     lines = file.readlines()
