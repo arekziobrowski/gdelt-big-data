@@ -1,0 +1,8 @@
+version: "3.7"
+
+services:
+  zeppelin:
+    volumes:
+        - /home/zosia/sem2/notebook:/notebook
+        - /home/zosia/sem2/logs:/logs
+

@@ -1,0 +1,8 @@
+version: "3.7"
+
+services:
+  zeppelin:
+    volumes:
+        - /home/jakub/2sem/big_data/gdelt_volume/logs:/logs
+        - /home/jakub/2sem/big_data/gdelt_volume/notebook:/notebook
+

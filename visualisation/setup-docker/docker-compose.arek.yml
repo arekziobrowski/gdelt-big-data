@@ -1,0 +1,8 @@
+version: "3.7"
+
+services:
+  zeppelin:
+    volumes:
+        - /home/arek/Documents/Mgr/big-data/gdelt-big-data/logs:/logs
+        - /home/arek/Documents/Mgr/big-data/gdelt-big-data/notebook:/notebook
+

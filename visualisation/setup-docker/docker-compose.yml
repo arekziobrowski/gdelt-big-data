@@ -1,0 +1,30 @@
+version: "3.7"
+
+services:
+  maria-gdelt:
+    image: mariadb:10.4.7
+    command: "--character-set-server=utf8 --collation-server=utf8_unicode_ci"
+    environment:
+      - MYSQL_DATABASE=bd_gdelt
+      - MYSQL_ROOT_PASSWORD=root
+    networks: 
+      - gdelt_network
+    ports:
+      - 13306:3306
+  zeppelin:
+    build:
+      dockerfile: Dockerfile
+      context: .
+    command: /zeppelin/bin/zeppelin.sh
+    privileged: true
+    environment:
+      - ZEPPELIN_NOTEBOOK_DIR='/notebook'
+      - ZEPPELIN_LOG_DIR='/logs'
+    networks: 
+      - gdelt_network
+    ports:
+      - 38080:8080
+      - 37077:7077
+networks:
+  gdelt_network:
+
