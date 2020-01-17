@@ -18,8 +18,8 @@ services:
     command: /zeppelin/bin/zeppelin.sh
     privileged: true
     environment:
-      - ZEPPELIN_NOTEBOOK_DIR='/notebook'
-      - ZEPPELIN_LOG_DIR='/logs'
+      - ZEPPELIN_NOTEBOOK_DIR=/notebook
+      - ZEPPELIN_LOG_DIR=/logs
     networks: 
       - gdelt_network
     ports:
