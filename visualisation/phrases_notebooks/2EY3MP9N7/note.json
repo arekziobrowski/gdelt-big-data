@@ -1,0 +1,54 @@
+{
+  "paragraphs": [
+    {
+      "text": "%jdbc SELECT keyword AS \u0027Phrase\u0027, score, title AS \u0027Article title\u0027, name AS \u0027County name\u0027, date_event, ROUND(LENGTH(REGEXP_REPLACE(keyword,\u0027[^ \\t]\u0027,\u0027\u0027))) AS \u0027Phrase length\u0027\nFROM article_keyword k\n         JOIN article a on k.article_id \u003d a.id\n         JOIN country c on a.country_id \u003d c.id\nWHERE name LIKE \u0027%${Państwo}%\u0027\n  AND date_event \u003e\u003d ${Od\u003d1900-01-01}\n  AND date_event \u003c\u003d ${Do\u003d2030-01-01}\n  AND ROUND(LENGTH(REGEXP_REPLACE(keyword,\u0027[^ \\t]\u0027,\u0027\u0027))) ${Długość frazy\u003d\u003e0}\n         ",
+      "user": "anonymous",
+      "dateUpdated": "Jan 17, 2020 11:47:07 PM",
+      "config": {
+        "colWidth": 12.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false
+        },
+        "editorMode": "ace/mode/sql"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "jobName": "paragraph_1579304814640_-436097032",
+      "id": "20200117-234654_585593811",
+      "dateCreated": "Jan 17, 2020 11:46:54 PM",
+      "status": "READY",
+      "progressUpdateIntervalMs": 500
+    }
+  ],
+  "name": "GDELT_SQL",
+  "id": "2EY3MP9N7",
+  "angularObjects": {
+    "2EXXBCD7G:shared_process": [],
+    "2EXU3GHHD:shared_process": [],
+    "2EZ8PX3QN:shared_process": [],
+    "2EZDTSEJH:shared_process": [],
+    "2EWGU334V:shared_process": [],
+    "2EX25V1DK:shared_process": [],
+    "2EZG5R422:shared_process": [],
+    "2EWFCE2P7:shared_process": [],
+    "2EX7UVWJ4:shared_process": [],
+    "2EX2U5JCJ:shared_process": [],
+    "2F11778TB:shared_process": [],
+    "2EZP18Q2R:shared_process": [],
+    "2EYZ8GYZW:shared_process": [],
+    "2EXVEC2C6:shared_process": [],
+    "2EZJBVDNA:shared_process": [],
+    "2EXQ8EWWH:shared_process": [],
+    "2EWPDFTPV:shared_process": [],
+    "2EXF489PF:shared_process": [],
+    "2EZCTWKE2:shared_process": []
+  },
+  "config": {},
+  "info": {}
+}
