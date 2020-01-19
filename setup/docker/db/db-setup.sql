@@ -75,11 +75,14 @@ CREATE OR REPLACE TABLE article_keyword(
 -- country_tone
 CREATE OR REPLACE TABLE country_tone(
     id INT NOT NULL AUTO_INCREMENT,
+    related_month DATE NOT NULL,
     start_date DATE NOT NULL,
     end_date DATE,
+    articles_number INT NOT NULL,
     mood VARCHAR(255),
-    country_id CHAR(2) NOT NULL,
+    last_published_date DATE NOT NULL,
     load_date TIMESTAMP NOT NULL,
+    country_id CHAR(2) NOT NULL,
     PRIMARY KEY (id),
     FOREIGN KEY (country_id)
         REFERENCES country (id)
