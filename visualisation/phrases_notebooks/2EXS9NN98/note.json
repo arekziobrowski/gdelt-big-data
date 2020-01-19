@@ -3,7 +3,7 @@
     {
       "text": "%dep\n\nz.reset()\nz.load(\"/zeppelin/local-repo/mysql-connector-java-5.1.6.jar\")",
       "user": "anonymous",
-      "dateUpdated": "Jan 19, 2020 12:45:51 PM",
+      "dateUpdated": "Jan 19, 2020 9:15:54 PM",
       "config": {
         "tableHide": false,
         "editorSetting": {
@@ -21,11 +21,11 @@
         "forms": {}
       },
       "results": {
-        "code": "ERROR",
+        "code": "SUCCESS",
         "msg": [
           {
             "type": "TEXT",
-            "data": "Must be used before SparkInterpreter (%spark) initialized\nHint: put this paragraph before any Spark code and restart Zeppelin/Interpreter"
+            "data": "res0: org.apache.zeppelin.dep.Dependency \u003d org.apache.zeppelin.dep.Dependency@39589cc3\n"
           }
         ]
       },
@@ -33,15 +33,15 @@
       "jobName": "paragraph_1579163966285_-1822596115",
       "id": "20200111-120346_858972808",
       "dateCreated": "Jan 16, 2020 8:39:26 AM",
-      "dateStarted": "Jan 19, 2020 12:45:51 PM",
-      "dateFinished": "Jan 19, 2020 12:45:51 PM",
-      "status": "ERROR",
+      "dateStarted": "Jan 19, 2020 9:15:54 PM",
+      "dateFinished": "Jan 19, 2020 9:15:58 PM",
+      "status": "FINISHED",
       "progressUpdateIntervalMs": 500
     },
     {
-      "text": "%spark\nimport org.apache.spark.sql._\n\ndef printQueryResultsAsTable(dataFrame: DataFrame) : Unit \u003d {\n print(\"%table\\n\" + dataFrame.columns.mkString(\"\\t\") + \u0027\\n\u0027+ dataFrame.map(x \u003d\u003e x.mkString(\"\\t\")).collect().mkString(\"\\n\")) \n}\n\ndef getDataFrame(query: String, columnNames: Seq[String]): DataFrame \u003d {\n    // print(query)\n    val df \u003d sqlContext.read.format(\"jdbc\").option(\"driver\",\"com.mysql.jdbc.Driver\")\n    .option(\"url\",\"jdbc:mysql://maria-gdelt:3306/bd_gdelt\")\n    .option(\"databaseName\", \"bd_gdelt\")\n    .option(\"user\", \"root\")\n    .option(\"password\",\"root\")\n    .option(\"dbtable\", query)\n    .load()\n    .toDF(columnNames: _*)\n    return df\n}\n\nval sqlQuery \u003d \"\"\"(SELECT * FROM (SELECT k.keyword, k.score, a.title,c.name, a.date_event, ROUND(LENGTH(REGEXP_REPLACE(k.keyword,\u0027[^ \\t]\u0027,\u0027\u0027))+1) as \u0027len\u0027 FROM article_keyword k\n         JOIN article a on k.article_id \u003d a.id\n         JOIN country c on a.country_id \u003d c.id) phrases ${0} ) AS phrases_table \"\"\"\n         \nval columnNames \u003d Seq(\"Phrase\", \"Score\", \"Article title\", \"Country\",\"Date\",\"Phrase length\")",
+      "text": "%spark\nimport org.apache.spark.sql._\n\ndef printQueryResultsAsTable(dataFrame: DataFrame) : Unit \u003d {\n print(\"%table\\n\" + dataFrame.columns.mkString(\"\\t\") + \u0027\\n\u0027+ dataFrame.map(x \u003d\u003e x.mkString(\"\\t\")).collect().mkString(\"\\n\")) \n}\n\ndef getDataFrame(query: String, columnNames: Seq[String]): DataFrame \u003d {\n    // print(query)\n    val df \u003d sqlContext.read.format(\"jdbc\").option(\"driver\",\"com.mysql.jdbc.Driver\")\n    .option(\"url\",\"jdbc:mysql://maria-gdelt:3306/bd_gdelt\")\n    .option(\"databaseName\", \"bd_gdelt\")\n    .option(\"user\", \"root\")\n    .option(\"password\",\"root\")\n    .option(\"dbtable\", query)\n    .load()\n    .toDF(columnNames: _*)\n    return df\n}\n\nval sqlQuery \u003d \"\"\"(SELECT * FROM (SELECT k.keyword, ROUND(LENGTH(REGEXP_REPLACE(k.keyword,\u0027[^ \\t]\u0027,\u0027\u0027))+1) as \u0027len\u0027, a.title, a.date_event, c.name, k.score FROM article_keyword k\n         JOIN article a on k.article_id \u003d a.id\n         JOIN country c on a.country_id \u003d c.id) phrases ${0} ) AS phrases_table \"\"\"\n         \nval columnNames \u003d Seq(\"Phrase\", \"Phrase length\", \"Article title\", \"Date\", \"Country\", \"Score\")\n\nval countriesQuery \u003d \"\"\"(SELECT c.id,c.name FROM country c JOIN article a on c.id \u003d a.country_id GROUP BY 1) as countries\"\"\"\nval countriesSeq \u003d getDataFrame(countriesQuery,Seq(\"code\",\"name\")).map(row\u003d\u003e(row.getString(1),row.getString(1))).collect()",
       "user": "anonymous",
-      "dateUpdated": "Jan 19, 2020 1:00:44 PM",
+      "dateUpdated": "Jan 19, 2020 9:45:17 PM",
       "config": {
         "colWidth": 12.0,
         "enabled": true,
@@ -61,7 +61,7 @@
         "msg": [
           {
             "type": "TEXT",
-            "data": "\nimport org.apache.spark.sql._\n\nprintQueryResultsAsTable: (dataFrame: org.apache.spark.sql.DataFrame)Unit\n\ngetDataFrame: (query: String, columnNames: Seq[String])org.apache.spark.sql.DataFrame\n\n\n\n\nsqlQuery: String \u003d\n\"(SELECT * FROM (SELECT k.keyword, k.score, a.title,c.name, a.date_event, ROUND(LENGTH(REGEXP_REPLACE(k.keyword,\u0027[^ \\t]\u0027,\u0027\u0027))+1) as \u0027len\u0027 FROM article_keyword k\n         JOIN article a on k.article_id \u003d a.id\n         JOIN country c on a.country_id \u003d c.id) phrases ${0} ) AS phrases_table \"\n\ncolumnNames: Seq[String] \u003d List(Phrase, Score, Article title, Country, Date, Phrase length)\n"
+            "data": "\nimport org.apache.spark.sql._\n\nprintQueryResultsAsTable: (dataFrame: org.apache.spark.sql.DataFrame)Unit\n\ngetDataFrame: (query: String, columnNames: Seq[String])org.apache.spark.sql.DataFrame\n\n\n\n\nsqlQuery: String \u003d\n\"(SELECT * FROM (SELECT k.keyword, ROUND(LENGTH(REGEXP_REPLACE(k.keyword,\u0027[^ \\t]\u0027,\u0027\u0027))+1) as \u0027len\u0027, a.title, a.date_event, c.name, k.score FROM article_keyword k\n         JOIN article a on k.article_id \u003d a.id\n         JOIN country c on a.country_id \u003d c.id) phrases ${0} ) AS phrases_table \"\n\ncolumnNames: Seq[String] \u003d List(Phrase, Phrase length, Article title, Date, Country, Score)\n\ncountriesQuery: String \u003d (SELECT c.id,c.name FROM country c JOIN article a on c.id \u003d a.country_id GROUP BY 1) as countries\ncountriesSeq: Array[(String, String)] \u003d Array((\"Antigua and Barbuda\",\"Antigua and Barbuda\"), (\"United Arab Emirates\",\"United Arab Emirates\"), (Afghanistan,Afghanistan), (Azerbaijan,Azerbaijan), (Angola,Angola), (Australia,Australia), (Austria,Austria), (Bermuda,Bermuda), (Belgium,Belgium), (Bangladesh,Bangladesh), (\"Bosnia and Herzegovina\",\"Bosnia and Herzegovina\"), (Belarus,Belarus), (Brazil,Brazil), (Canada,Canada), (China,China), (Chile,Chile), (Cyprus,Cyprus), (Egypt,Egypt), (Ireland,Ireland), (Estonia,Estonia), (France,France), (Gibraltar,Gibraltar), (Germany,Germany), (Haiti,Haiti), (\"Hong Kong\",\"Hong Kong\"), (Indonesia,Indonesia), (India,India), (Iran,Iran), (Israel,Israel), (Italy,Italy), (Iraq,Iraq), (Japan,Japan), (Kuwait,Kuwait), (Lebanon,Lebanon), (Libya,Libya), (Macau,Macau..."
           }
         ]
       },
@@ -69,19 +69,26 @@
       "jobName": "paragraph_1579303694253_-1234279669",
       "id": "20200117-232814_1697664171",
       "dateCreated": "Jan 17, 2020 11:28:14 PM",
-      "dateStarted": "Jan 19, 2020 12:57:22 PM",
-      "dateFinished": "Jan 19, 2020 12:57:23 PM",
+      "dateStarted": "Jan 19, 2020 9:45:17 PM",
+      "dateFinished": "Jan 19, 2020 9:45:18 PM",
       "status": "FINISHED",
       "progressUpdateIntervalMs": 500
     },
     {
-      "text": "%spark\nval dateFrom \u003d z.input(\"Date from\");\nval dateTo \u003d z.input(\"Date to\");\nval phraseLenFrom \u003d z.input(\"Phrase length from\");\nval phraseLenTo \u003d z.input(\"Phrase length to\");\nval scoreFrom \u003d z.input(\"Min score\");\nval scoreTo \u003d z.input(\"Max score\");\nval country \u003d z.input(\"Country name\");\nval limit \u003d z.input(\"Limit\",\"100\")\nval sort \u003d z.select(\"Sort by\",Seq((\"\",\"None\"),(\"keyword\",\"Phrase\"),(\"score\",\"Score\"),(\"title\",\"Title\"),(\"name\",\"Country\"),(\"date_event\",\"Date\"),(\"len\",\"Phrase length\")))\nval sortType \u003d z.select(\"Asc/Desc\",Seq((\"\",\"Ascending\"),(\"DESC\",\"Descending\")))\n\nvar conditions \u003d List[String]()\nif(dateFrom !\u003d\"\"){\n    conditions \u003d (\"date_event \u003e\u003d \u0027\"+dateFrom+\"\u0027\") :: conditions\n}\nif(dateTo !\u003d\"\"){\n    conditions \u003d (\"date_event \u003c\u003d \u0027\"+dateTo+\"\u0027\") :: conditions\n}\nif(scoreFrom !\u003d\"\"){\n    conditions \u003d (\"score \u003e\u003d \u0027\"+scoreFrom+\"\u0027\") :: conditions\n}\nif(scoreTo !\u003d\"\"){\n    conditions \u003d (\"score \u003c\u003d \u0027\"+scoreTo+\"\u0027\") :: conditions\n}\nif(phraseLenFrom !\u003d\"\"){\n    conditions \u003d (\"len \u003e\u003d \u0027\"+phraseLenFrom+\"\u0027\") :: conditions\n}\nif(phraseLenTo !\u003d\"\"){\n    conditions \u003d (\"len \u003c\u003d \u0027\"+phraseLenTo+\"\u0027\") :: conditions\n}\nif(country !\u003d\"\"){\n    conditions \u003d (\"name LIKE \u0027%\"+country+\"%\u0027\") :: conditions\n}\n\nval condJoined \u003d (if(conditions.isEmpty) \"\" else \"WHERE \")+ conditions.mkString(\" AND \") + (if(sort !\u003d \"\") (\" ORDER BY \" + sort +\" \"+ sortType) else \"\") + (if(limit!\u003d\"\") (\" LIMIT \"+limit) else \"LIMIT 100\")\n\nval df \u003d getDataFrame(sqlQuery.replace(\"${0}\", condJoined), columnNames)\nprintQueryResultsAsTable(df)\n",
+      "text": "%spark\nval dateFrom \u003d z.input(\"Date from\");\nval dateTo \u003d z.input(\"Date to\");\nval phraseLenFrom \u003d z.input(\"Phrase length from\");\nval phraseLenTo \u003d z.input(\"Phrase length to\");\nval scoreFrom \u003d z.input(\"Min score\");\nval scoreTo \u003d z.input(\"Max score\");\nval country \u003d z.select(\"Country\",countriesSeq);\nval limit \u003d z.input(\"Limit\",\"100\")\nval sort \u003d z.select(\"Sort by\",List((\"\",\"None\"),(\"keyword\",\"Phrase\"),(\"score\",\"Score\"),(\"title\",\"Title\"),(\"name\",\"Country\"),(\"date_event\",\"Date\"),(\"len\",\"Phrase length\")))\nval sortType \u003d z.select(\"Asc/Desc\",Seq((\"\",\"Ascending\"),(\"DESC\",\"Descending\")))\n\nvar conditions \u003d List[String]()\nif(dateFrom !\u003d\"\"){\n    conditions \u003d (\"date_event \u003e\u003d \u0027\"+dateFrom+\"\u0027\") :: conditions\n}\nif(dateTo !\u003d\"\"){\n    conditions \u003d (\"date_event \u003c\u003d \u0027\"+dateTo+\"\u0027\") :: conditions\n}\nif(scoreFrom !\u003d\"\"){\n    conditions \u003d (\"score \u003e\u003d \u0027\"+scoreFrom+\"\u0027\") :: conditions\n}\nif(scoreTo !\u003d\"\"){\n    conditions \u003d (\"score \u003c\u003d \u0027\"+scoreTo+\"\u0027\") :: conditions\n}\nif(phraseLenFrom !\u003d\"\"){\n    conditions \u003d (\"len \u003e\u003d \u0027\"+phraseLenFrom+\"\u0027\") :: conditions\n}\nif(phraseLenTo !\u003d\"\"){\n    conditions \u003d (\"len \u003c\u003d \u0027\"+phraseLenTo+\"\u0027\") :: conditions\n}\nif(country !\u003d\"\"){\n    conditions \u003d (\"name \u003d \u0027\"+country+\"\u0027\") :: conditions\n}\n\nval condJoined \u003d (if(conditions.isEmpty) \"\" else \"WHERE \")+ conditions.mkString(\" AND \") + (if(sort !\u003d \"\") (\" ORDER BY \" + sort +\" \"+ sortType) else \"\") + (if(limit!\u003d\"\") (\" LIMIT \"+limit) else \"LIMIT 100\")\n\nval df \u003d getDataFrame(sqlQuery.replace(\"${0}\", condJoined), columnNames)\nprintQueryResultsAsTable(df)\n",
       "user": "anonymous",
-      "dateUpdated": "Jan 19, 2020 1:01:42 PM",
+      "dateUpdated": "Jan 19, 2020 9:45:20 PM",
       "config": {
         "colWidth": 12.0,
         "enabled": true,
         "results": {
+          "0": {
+            "graph": {
+              "mode": "table",
+              "height": 89.95,
+              "optionOpen": false
+            }
+          },
           "1": {
             "graph": {
               "mode": "table",
@@ -132,16 +139,17 @@
           "Kraj": "",
           "Sortowanie": "score",
           "Typ sortowanie": "",
-          "Date to": "2019-12-30",
+          "Date to": "2020-12-30",
           "Date from": "2019-12-01",
-          "Phrase length from": "2",
+          "Phrase length from": "0",
           "Phrase length to": "4",
           "Country name": "king",
           "Limit": "50",
           "Min score": "2.2",
           "Max score": "13.36",
           "Sort by": "score",
-          "Asc/Desc": "DESC"
+          "Asc/Desc": "",
+          "Country": "Austria"
         },
         "forms": {
           "Date from": {
@@ -186,11 +194,261 @@
             "defaultValue": "",
             "hidden": false
           },
-          "Country name": {
-            "name": "Country name",
-            "displayName": "Country name",
-            "type": "input",
+          "Country": {
+            "name": "Country",
+            "displayName": "Country",
+            "type": "select",
             "defaultValue": "",
+            "options": [
+              {
+                "value": "\"Antigua and Barbuda\"",
+                "displayName": "\"Antigua and Barbuda\""
+              },
+              {
+                "value": "\"United Arab Emirates\"",
+                "displayName": "\"United Arab Emirates\""
+              },
+              {
+                "value": "Afghanistan",
+                "displayName": "Afghanistan"
+              },
+              {
+                "value": "Azerbaijan",
+                "displayName": "Azerbaijan"
+              },
+              {
+                "value": "Angola",
+                "displayName": "Angola"
+              },
+              {
+                "value": "Australia",
+                "displayName": "Australia"
+              },
+              {
+                "value": "Austria",
+                "displayName": "Austria"
+              },
+              {
+                "value": "Bermuda",
+                "displayName": "Bermuda"
+              },
+              {
+                "value": "Belgium",
+                "displayName": "Belgium"
+              },
+              {
+                "value": "Bangladesh",
+                "displayName": "Bangladesh"
+              },
+              {
+                "value": "\"Bosnia and Herzegovina\"",
+                "displayName": "\"Bosnia and Herzegovina\""
+              },
+              {
+                "value": "Belarus",
+                "displayName": "Belarus"
+              },
+              {
+                "value": "Brazil",
+                "displayName": "Brazil"
+              },
+              {
+                "value": "Canada",
+                "displayName": "Canada"
+              },
+              {
+                "value": "China",
+                "displayName": "China"
+              },
+              {
+                "value": "Chile",
+                "displayName": "Chile"
+              },
+              {
+                "value": "Cyprus",
+                "displayName": "Cyprus"
+              },
+              {
+                "value": "Egypt",
+                "displayName": "Egypt"
+              },
+              {
+                "value": "Ireland",
+                "displayName": "Ireland"
+              },
+              {
+                "value": "Estonia",
+                "displayName": "Estonia"
+              },
+              {
+                "value": "France",
+                "displayName": "France"
+              },
+              {
+                "value": "Gibraltar",
+                "displayName": "Gibraltar"
+              },
+              {
+                "value": "Germany",
+                "displayName": "Germany"
+              },
+              {
+                "value": "Haiti",
+                "displayName": "Haiti"
+              },
+              {
+                "value": "\"Hong Kong\"",
+                "displayName": "\"Hong Kong\""
+              },
+              {
+                "value": "Indonesia",
+                "displayName": "Indonesia"
+              },
+              {
+                "value": "India",
+                "displayName": "India"
+              },
+              {
+                "value": "Iran",
+                "displayName": "Iran"
+              },
+              {
+                "value": "Israel",
+                "displayName": "Israel"
+              },
+              {
+                "value": "Italy",
+                "displayName": "Italy"
+              },
+              {
+                "value": "Iraq",
+                "displayName": "Iraq"
+              },
+              {
+                "value": "Japan",
+                "displayName": "Japan"
+              },
+              {
+                "value": "Kuwait",
+                "displayName": "Kuwait"
+              },
+              {
+                "value": "Lebanon",
+                "displayName": "Lebanon"
+              },
+              {
+                "value": "Libya",
+                "displayName": "Libya"
+              },
+              {
+                "value": "Macau",
+                "displayName": "Macau"
+              },
+              {
+                "value": "Mauritius",
+                "displayName": "Mauritius"
+              },
+              {
+                "value": "Mexico",
+                "displayName": "Mexico"
+              },
+              {
+                "value": "Malaysia",
+                "displayName": "Malaysia"
+              },
+              {
+                "value": "Netherlands",
+                "displayName": "Netherlands"
+              },
+              {
+                "value": "Norway",
+                "displayName": "Norway"
+              },
+              {
+                "value": "\"New Zealand\"",
+                "displayName": "\"New Zealand\""
+              },
+              {
+                "value": "Peru",
+                "displayName": "Peru"
+              },
+              {
+                "value": "Pakistan",
+                "displayName": "Pakistan"
+              },
+              {
+                "value": "Qatar",
+                "displayName": "Qatar"
+              },
+              {
+                "value": "Philippines",
+                "displayName": "Philippines"
+              },
+              {
+                "value": "Russia",
+                "displayName": "Russia"
+              },
+              {
+                "value": "Senegal",
+                "displayName": "Senegal"
+              },
+              {
+                "value": "Singapore",
+                "displayName": "Singapore"
+              },
+              {
+                "value": "Somalia",
+                "displayName": "Somalia"
+              },
+              {
+                "value": "Spain",
+                "displayName": "Spain"
+              },
+              {
+                "value": "Syria",
+                "displayName": "Syria"
+              },
+              {
+                "value": "Switzerland",
+                "displayName": "Switzerland"
+              },
+              {
+                "value": "Thailand",
+                "displayName": "Thailand"
+              },
+              {
+                "value": "Taiwan",
+                "displayName": "Taiwan"
+              },
+              {
+                "value": "\"United Kingdom\"",
+                "displayName": "\"United Kingdom\""
+              },
+              {
+                "value": "Ukraine",
+                "displayName": "Ukraine"
+              },
+              {
+                "value": "\"United States\"",
+                "displayName": "\"United States\""
+              },
+              {
+                "value": "Venezuela",
+                "displayName": "Venezuela"
+              },
+              {
+                "value": "Vietnam",
+                "displayName": "Vietnam"
+              },
+              {
+                "value": "Namibia",
+                "displayName": "Namibia"
+              },
+              {
+                "value": "Yemen",
+                "displayName": "Yemen"
+              }
+            ],
             "hidden": false
           },
           "Limit": {
@@ -261,11 +519,11 @@
         "msg": [
           {
             "type": "TEXT",
-            "data": "\ndateFrom: Object \u003d 2019-12-01\n\ndateTo: Object \u003d 2019-12-30\n\nphraseLenFrom: Object \u003d 2\n\nphraseLenTo: Object \u003d 4\n\nscoreFrom: Object \u003d 2.2\n\nscoreTo: Object \u003d 13.36\n\ncountry: Object \u003d king\n\nlimit: Object \u003d 50\n\nsort: Object \u003d score\n\nsortType: Object \u003d DESC\n\nconditions: List[String] \u003d List()\n\ncondJoined: String \u003d WHERE name LIKE \u0027%king%\u0027 AND len \u003c\u003d \u00274\u0027 AND len \u003e\u003d \u00272\u0027 AND score \u003c\u003d \u002713.36\u0027 AND score \u003e\u003d \u00272.2\u0027 AND date_event \u003c\u003d \u00272019-12-30\u0027 AND date_event \u003e\u003d \u00272019-12-01\u0027 ORDER BY score DESC LIMIT 50\n(SELECT * FROM (SELECT k.keyword, k.score, a.title,c.name, a.date_event, ROUND(LENGTH(REGEXP_REPLACE(k.keyword,\u0027[^ \\t]\u0027,\u0027\u0027))+1) as \u0027len\u0027 FROM article_keyword k\n         JOIN article a on k.article_id \u003d a.id\n         JOIN country c on a.country_id \u003d c.id) phrases WHERE name LIKE \u0027%king%\u0027 AND len \u003c\u003d \u00274\u0027 AND len \u003e\u003d \u00272\u0027 AND score \u003c\u003d \u002713.36\u0027 AND score \u003e\u003d \u00272.2\u0027 AND date_event \u003c\u003d \u00272019-12-30\u0027 AND date_event \u003e\u003d \u00272019-12-01\u0027 ORDER BY score DESC LIMIT 50 ) AS phrases_table \ndf: org.apache.spark.sql.DataFrame \u003d [Phrase: string, Score: decimal(9,2) ... 4 more fields]\n"
+            "data": "\ndateFrom: Object \u003d 2019-12-01\n\ndateTo: Object \u003d 2020-12-30\n\nphraseLenFrom: Object \u003d 0\n\nphraseLenTo: Object \u003d 4\n\nscoreFrom: Object \u003d 2.2\n\nscoreTo: Object \u003d 13.36\n\ncountry: Object \u003d Austria\n\nlimit: Object \u003d 50\n\nsort: Object \u003d score\n\nsortType: Object \u003d \"\"\n\nconditions: List[String] \u003d List()\n\ncondJoined: String \u003d WHERE name \u003d \u0027Austria\u0027 AND len \u003c\u003d \u00274\u0027 AND len \u003e\u003d \u00270\u0027 AND score \u003c\u003d \u002713.36\u0027 AND score \u003e\u003d \u00272.2\u0027 AND date_event \u003c\u003d \u00272020-12-30\u0027 AND date_event \u003e\u003d \u00272019-12-01\u0027 ORDER BY score  LIMIT 50\n\ndf: org.apache.spark.sql.DataFrame \u003d [Phrase: string, Phrase length: bigint ... 4 more fields]\n"
           },
           {
             "type": "TABLE",
-            "data": "Phrase\tScore\tArticle title\tCountry\tDate\tPhrase length\nmaj gen soleimani represented\t13.36\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t4\ntop iranian security official\t13.25\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t4\nus-led coalition scaling back\t13.00\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t4\nsky news understands\t9.73\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t3\nsenior iranian official\t9.50\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t3\nmaj gen soleimani\t9.36\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t3\nweakest scenario carrying\t9.00\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t3\nlinked shia militias\t9.00\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t3\nwords drew cries\t9.00\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t3\nsub-saharan african nations\t9.00\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t3\nincorrectly implied withdrawal\t9.00\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t3\nidentified 52 iranian sites\t9.00\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t4\nincreased troop movements\t9.00\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t3\ntop iranian officials\t8.75\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t3\ngeneral mark milley\t8.71\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t3\nleft 213 people injured\t8.33\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t4\niranian capital tehran\t8.00\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t3\nmajor general soleimani\t7.57\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t3\ntask force iraq\t7.27\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t3\ntop military commander\t6.75\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t3\nsky news\t6.73\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t2\ndonald trump\t5.67\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t2\nali shamkhani\t5.67\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t2\nnews reporter\t5.40\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t2\nqassem soleimani\t4.86\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t2\niranian general\t4.71\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t2\nmr trump\t4.67\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t2\nisrael faced\t4.33\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t2\npeople lined\t4.33\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t2\ncoalition forces\t4.33\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t2\nmillion people\t4.33\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t2\nquds unit\t4.00\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t2\nunprecedented honour\t4.00\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t2\namerican soldiers\t4.00\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t2\namerican contractor\t4.00\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t2\ncultural significance\t4.00\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t2\ntom gillespie\t4.00\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t2\nmr salami\t4.00\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t2\nminimum level\t4.00\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t2\nstate television\t4.00\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t2\namerican commander\t4.00\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t2\nhistoric nightmare\t4.00\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t2\ncoming days\t4.00\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t2\npoorly worded\t4.00\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t2\ngreater threat\t4.00\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t2\nseely iii\t4.00\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t2\nparliament called\t4.00\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t2\ndaily podcast\t4.00\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t2\ngoogle podcasts\t4.00\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t2\nrevolutionary guard\t4.00\tUS - led coalition to  scale back in Baghdad  after Soleimani killing\t\"United Kingdom\"\t2019-12-30\t2"
+            "data": "Phrase\tPhrase length\tArticle title\tDate\tCountry\tScore\nclimate\t1\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t2.33\nhuber\t1\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t2.33\nimmigration\t1\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t2.50\nparty\t1\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t2.50\nleader\t1\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t2.67\n5 percent --\t3\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t3.10\ngreens agreed\t2\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t3.14\nconservative oevp\t2\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t3.17\ngovernment aims\t2\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t3.29\nstable government\t2\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t3.29\nkurz --\t2\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t3.43\nsnap polls\t2\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t3.50\n8 million people\t3\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t3.50\npromised austrians\t2\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t3.50\nalpine country\t2\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t3.50\ndecades --\t2\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t3.60\ndenounce kurz\t2\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t3.83\ncarbon neutral\t2\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t4.00\neuropean countries\t2\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t4.00\nlove marriage\t2\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t4.00\ngraft scandal\t2\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t4.00\ndefence minister\t2\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t4.00\npopulist sentiments\t2\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t4.00\noxford economics\t2\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t4.00\ncorruption scandal\t2\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t4.00\nnational level\t2\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t4.00\nculture portfolio\t2\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t4.00\ndangerous experiment\t2\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t4.00\ngreat expectations\t2\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t4.00\ncontinent grapple\t2\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t4.00\nhandover ceremony\t2\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t4.00\nsteady stream\t2\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t4.00\njulia zappei\t2\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t4.00\nsnap elections\t2\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t4.00\nchild refugee\t2\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t4.00\nincludes traffic\t2\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t4.00\nshock result\t2\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t4.00\nfiscal plans\t2\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t4.00\nbosnian origin\t2\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t4.00\narrangement called\t2\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t4.00\ncomplete answer\t2\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t4.00\ncontinue working\t2\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t4.00\nhard line\t2\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t4.00\naustrian media\t2\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t4.50\njustice ministry\t2\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t4.50\nstrongest party\t2\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t4.50\nsocial democrats\t2\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t4.50\nparty officials\t2\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t4.50\npowerful conservatives\t2\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t4.50\nfreedom party\t2\tAustria Kurz returns as world youngest chancellor\t2020-01-08\tAustria\t4.50"
           }
         ]
       },
@@ -273,8 +531,8 @@
       "jobName": "paragraph_1579205435806_916076836",
       "id": "20200116-201035_1898938135",
       "dateCreated": "Jan 16, 2020 8:10:35 PM",
-      "dateStarted": "Jan 19, 2020 1:01:42 PM",
-      "dateFinished": "Jan 19, 2020 1:01:44 PM",
+      "dateStarted": "Jan 19, 2020 9:45:20 PM",
+      "dateFinished": "Jan 19, 2020 9:45:23 PM",
       "status": "FINISHED",
       "progressUpdateIntervalMs": 500
     },
