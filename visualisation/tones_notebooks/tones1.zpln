@@ -3,7 +3,7 @@
   {
    "text": "%dep\n\n\nimport org.aopalliance.reflect.Class\n\nz.reset()\nz.load(\"/zeppelin/local-repo/mysql-connector-java-5.1.6.jar\")",
    "user": "anonymous",
-   "dateUpdated": "2020-01-20T14:31:41+0000",
+   "dateUpdated": "2020-01-20T14:59:26+0000",
    "config": {
     "editorSetting": {
      "language": "scala",
@@ -31,18 +31,18 @@
     ]
    },
    "apps": [],
-   "jobName": "paragraph_1579530701519_-737184799",
-   "id": "20200120-143141_1754473583",
-   "dateCreated": "2020-01-20T14:31:41+0000",
-   "dateStarted": "2020-01-20T14:31:41+0000",
-   "dateFinished": "2020-01-20T14:31:41+0000",
+   "jobName": "paragraph_1579532350915_977801392",
+   "id": "20200120-145910_722234833",
+   "dateCreated": "2020-01-20T14:59:10+0000",
+   "dateStarted": "2020-01-20T14:59:11+0000",
+   "dateFinished": "2020-01-20T14:59:11+0000",
    "status": "ERROR",
    "progressUpdateIntervalMs": 500.0
   },
   {
    "text": "%spark\n\nimport org.apache.spark.sql._\n\ndef printQueryResultsAsTable(dataFrame: DataFrame): Unit = {\n    print(\"%table\\n\" + dataFrame.columns.mkString(\"\\t\") + '\\n' + dataFrame.map(x => x.mkString(\"\\t\")).collect().mkString(\"\\n\"))\n}\n\ndef getDataFrame(query: String, columnNames: Seq[String]): DataFrame = {\n    //    print(query)\n    val df = sqlContext.read.format(\"jdbc\").option(\"driver\", \"com.mysql.jdbc.Driver\")\n            .option(\"url\", \"jdbc:mysql://maria-gdelt:3306/bd_gdelt\")\n            .option(\"databaseName\", \"bd_gdelt\")\n            .option(\"user\", \"root\")\n            .option(\"password\", \"root\")\n            .option(\"dbtable\", query)\n            .load()\n            .toDF(columnNames: _*)\n    return df\n}\n",
    "user": "anonymous",
-   "dateUpdated": "2020-01-20T14:31:41+0000",
+   "dateUpdated": "2020-01-20T14:59:11+0000",
    "config": {},
    "settings": {
     "params": {
@@ -83,18 +83,18 @@
     ]
    },
    "apps": [],
-   "jobName": "paragraph_1579530701532_-731413565",
-   "id": "20200120-143141_343113764",
-   "dateCreated": "2020-01-20T14:31:41+0000",
-   "dateStarted": "2020-01-20T14:31:41+0000",
-   "dateFinished": "2020-01-20T14:31:43+0000",
+   "jobName": "paragraph_1579532350947_965489427",
+   "id": "20200120-145910_935395329",
+   "dateCreated": "2020-01-20T14:59:10+0000",
+   "dateStarted": "2020-01-20T14:59:11+0000",
+   "dateFinished": "2020-01-20T14:59:13+0000",
    "status": "FINISHED",
    "progressUpdateIntervalMs": 500.0
   },
   {
    "text": "%spark\n\nval sqlQueryArticle =\n    \"\"\"(SELECT * FROM (SELECT a.date_published, a.date_event, a.tone, a.country_id, c.name FROM article a\n                            JOIN country c on c.id = a.country_id \n                            ORDER BY a.date_published ASC, a.tone ASC) tones_prep ${0} ORDER BY date_published ASC, tone ASC) AS tones\"\"\"\n\nval columnNamesArticle = Seq(\"Date published\", \"Date event\", \"Tone\", \"Country ID\", \"Country name\")\n\nval articleDatePublished = z.input(\"Date published >=\")\nval countryName = z.input(\"Country name LIKE\")\n\nvar conditionsArticle = List[String]()\nif (articleDatePublished != \"\") {\n    conditionsArticle = (\"date_published >= '\" + articleDatePublished + \"'\") :: conditionsArticle\n}\nif (countryName != \"\") {\n    conditionsArticle = (\"name LIKE '%\" + countryName + \"%'\") :: conditionsArticle\n}\n\nval condJoinedArticle = (if (conditionsArticle.isEmpty) \"\" else \"WHERE \") + conditionsArticle.mkString(\" AND \")\nval dfArticle = getDataFrame(sqlQueryArticle.replace(\"${0}\", condJoinedArticle), columnNamesArticle).orderBy(asc(\"tone\")).orderBy(asc(\"date_published\"))\nprintQueryResultsAsTable(dfArticle)\n\n\n",
    "user": "anonymous",
-   "dateUpdated": "2020-01-20T14:31:41+0000",
+   "dateUpdated": "2020-01-20T14:59:11+0000",
    "config": {},
    "settings": {
     "params": {
@@ -132,18 +132,18 @@
     ]
    },
    "apps": [],
-   "jobName": "paragraph_1579530701545_-748727266",
-   "id": "20200120-143141_584329522",
-   "dateCreated": "2020-01-20T14:31:41+0000",
-   "dateStarted": "2020-01-20T14:31:41+0000",
-   "dateFinished": "2020-01-20T14:31:50+0000",
+   "jobName": "paragraph_1579532350987_654612316",
+   "id": "20200120-145910_1087698237",
+   "dateCreated": "2020-01-20T14:59:10+0000",
+   "dateStarted": "2020-01-20T14:59:11+0000",
+   "dateFinished": "2020-01-20T14:59:20+0000",
    "status": "FINISHED",
    "progressUpdateIntervalMs": 500.0
   },
   {
    "text": "%spark\n//class CountryTone(id: Int, related_month: Date, start_date: Date, end_date: Date, articles_number: Int, last_published_date: Date, load_date: Date, country_id: String)\n\nval sqlQueryCountryTone = \"\"\"(SELECT ct.id, ct.related_month, ct.start_date, ct.end_date, ct.articles_number, ct.mood, ct.last_published_date, ct.country_id, ct.load_date FROM country_tone ct) AS country_tones\"\"\"\nval columnNamesCountryTone = Seq(\"ID\", \"Related month\", \"Start date\", \"End date\", \"Articles number\", \"Mood\", \"Last published date\", \"Country ID\", \"Load date\")\nval dfCountryTone = getDataFrame(sqlQueryCountryTone, columnNamesCountryTone)\nprintQueryResultsAsTable(dfCountryTone)",
    "user": "anonymous",
-   "dateUpdated": "2020-01-20T14:31:44+0000",
+   "dateUpdated": "2020-01-20T14:59:13+0000",
    "config": {},
    "settings": {
     "params": {
@@ -174,18 +174,18 @@
     ]
    },
    "apps": [],
-   "jobName": "paragraph_1579530701557_-741032288",
-   "id": "20200120-143141_113225263",
-   "dateCreated": "2020-01-20T14:31:41+0000",
-   "dateStarted": "2020-01-20T14:31:44+0000",
-   "dateFinished": "2020-01-20T14:31:52+0000",
+   "jobName": "paragraph_1579532351014_644224096",
+   "id": "20200120-145911_99178270",
+   "dateCreated": "2020-01-20T14:59:11+0000",
+   "dateStarted": "2020-01-20T14:59:13+0000",
+   "dateFinished": "2020-01-20T14:59:22+0000",
    "status": "FINISHED",
    "progressUpdateIntervalMs": 500.0
   },
   {
    "text": "%spark\n\nimport org.apache.spark.sql.SaveMode\n\nval columnNamesCountryToneForCountryIdAndDate = Seq(\"id\", \"related_month\", \"start_date\", \"end_date\", \"articles_number\", \"mood\", \"last_published_date\", \"country_id\", \"load_date\")\n\ndef printQueryResultsAsTable(dataFrame: DataFrame): Unit = {\n    print(\"%table\\n\" + dataFrame.columns.mkString(\"\\t\") + '\\n' + dataFrame.map(x => x.mkString(\"\\t\")).collect().mkString(\"\\n\"))\n}\ndef getMoodFromArticle(tone: BigDecimal): String = {\n    if (tone >= 0.0) \"positive\" else \"negative\"\n}\n\ndef writeDataFrame(dataFrame: DataFrame, tableName: String, mode: SaveMode): Unit = {\n    //    println(dataFrame)\n    dataFrame.write\n            .format(\"jdbc\")\n            .mode(mode)\n            .option(\"driver\", \"com.mysql.jdbc.Driver\")\n            .option(\"url\", \"jdbc:mysql://maria-gdelt:3306/bd_gdelt\")\n            .option(\"databaseName\", \"bd_gdelt\")\n            .option(\"user\", \"root\")\n            .option(\"password\", \"root\")\n            .option(\"dbtable\", tableName)\n            .save()\n}\n",
    "user": "anonymous",
-   "dateUpdated": "2020-01-20T14:31:51+0000",
+   "dateUpdated": "2020-01-20T14:59:21+0000",
    "config": {},
    "settings": {
     "params": {},
@@ -201,18 +201,18 @@
     ]
    },
    "apps": [],
-   "jobName": "paragraph_1579530701584_-652924790",
-   "id": "20200120-143141_1495661653",
-   "dateCreated": "2020-01-20T14:31:41+0000",
-   "dateStarted": "2020-01-20T14:31:51+0000",
-   "dateFinished": "2020-01-20T14:31:55+0000",
+   "jobName": "paragraph_1579532351051_629988387",
+   "id": "20200120-145911_532177110",
+   "dateCreated": "2020-01-20T14:59:11+0000",
+   "dateStarted": "2020-01-20T14:59:21+0000",
+   "dateFinished": "2020-01-20T14:59:25+0000",
    "status": "FINISHED",
    "progressUpdateIntervalMs": 500.0
   },
   {
    "text": "%spark\n\nimport java.util.Calendar\nimport java.sql.{Connection, DriverManager}\n\ndef deleteRow(tableName: String, id: Int): Unit = {\n    val myUrl = \"jdbc:mysql://maria-gdelt:3306/bd_gdelt\"\n    val conn = DriverManager.getConnection(myUrl, \"root\", \"root\");\n\n    val query = f\"DELETE FROM $tableName WHERE id=$id\"\n    val preparedStmt = conn.prepareStatement(query);\n    //    println(preparedStmt)\n    preparedStmt.executeUpdate();\n}\n\n\nfor (row <- dfArticle.collect) {\n    //for (row <- dfArticle.take(15)) {\n\n    val publishedDate = row.getDate(0)\n    val dateEvent = row.getDate(1)\n    val tone = row.getDecimal(2)\n    val countryId = row.getString(3)\n    val articleMood = getMoodFromArticle(tone)\n\n    val calendar = Calendar.getInstance()\n    calendar.setTime(dateEvent)\n\n    val dateEventYear = calendar.get(Calendar.YEAR)\n    val dateEventMonth = calendar.get(Calendar.MONTH) + 1\n\n    val sqlQueryForCountryToneGivenCountryIdAndDateEvent =\n        f\"\"\"(SELECT * FROM(SELECT ct.id, ct.related_month, ct.start_date, ct.end_date, ct.articles_number, ct.mood, ct.last_published_date, ct.country_id, ct.load_date FROM country_tone ct\n              WHERE end_date IS NULL\n              AND country_id = '$countryId'\n              AND YEAR(start_date) = $dateEventYear\n              AND MONTH(start_date) = $dateEventMonth\n              ) joined_country_tone_for_countryid_and_date) AS country_tone_for_countryid_and_date \"\"\"\n\n    val dfCountryToneForCountryIdAndDate = getDataFrame(sqlQueryForCountryToneGivenCountryIdAndDateEvent, columnNamesCountryToneForCountryIdAndDate)\n\n\n    if (dfCountryToneForCountryIdAndDate.collect().length == 1) {\n        // row exists\n        //        println(\"case 1\")\n\n        val dfRow = dfCountryToneForCountryIdAndDate.first()\n        val lastPublishedDate = dfRow.getDate(6)\n\n        if (!(lastPublishedDate.compareTo(publishedDate) < 0)) {\n            //            println(\"case 2\")\n            // ignore old articles\n            val rowMood = dfRow.getString(5)\n\n            if (articleMood == rowMood) {\n                //                println(\"case 3\")\n                // update = delete + insert\n                val idToDelete = dfRow.getInt(0)\n                deleteRow(\"country_tone\", idToDelete);\n\n                val updatedRecord = Seq(\n                    (dfRow.getDate(1),\n                            dfRow.getDate(2),\n                            dfRow.getInt(4) + 1,\n                            dfRow.getString(5),\n                            publishedDate,\n                            dfRow.getString(7))\n                ).toDF(\"related_month\", \"start_date\", \"articles_number\", \"mood\", \"last_published_date\", \"country_id\")\n                writeDataFrame(updatedRecord.toDF, \"country_tone\", SaveMode.Append)\n            }\n            else {\n                //                println(\"case 4\")\n                // update = delete + insert\n                val idToDelete = dfRow.getInt(0)\n                deleteRow(\"country_tone\", idToDelete);\n\n                val updatedRecord = Seq(\n                    (dfRow.getDate(1),\n                            dfRow.getDate(2),\n                            dfRow.getDate(6), // update end_date = lastPublishedDate\n                            dfRow.getInt(4),\n                            dfRow.getString(5),\n                            dfRow.getDate(6),\n                            dfRow.getString(7))\n                ).toDF(\"related_month\", \"start_date\", \"end_date\", \"articles_number\", \"mood\", \"last_published_date\", \"country_id\")\n                writeDataFrame(updatedRecord.toDF, \"country_tone\", SaveMode.Append)\n\n                // new record\n                val newRecord = Seq(\n                    (publishedDate,\n                            publishedDate,\n                            1,\n                            articleMood,\n                            publishedDate,\n                            countryId)\n                ).toDF(\"related_month\", \"start_date\", \"articles_number\", \"mood\", \"last_published_date\", \"country_id\")\n                writeDataFrame(newRecord.toDF, \"country_tone\", SaveMode.Append)\n            }\n        }\n    } else {\n        //        println(\"case 5\")\n        // row does not exist\n\n        // searching for opened intervals for this country\n        val sqlQueryForCountryToneGivenCountryId =\n            f\"\"\"(SELECT * FROM(SELECT ct.id, ct.related_month, ct.start_date, ct.end_date, ct.articles_number, ct.mood, ct.last_published_date, ct.country_id, ct.load_date FROM country_tone ct\n              WHERE end_date IS NULL\n              AND country_id = '$countryId') joined_country_tone_for_countryid) AS country_tone_for_countryid \"\"\"\n        val dfCountryToneForCountryId = getDataFrame(sqlQueryForCountryToneGivenCountryId, columnNamesCountryToneForCountryIdAndDate)\n\n        for (notEndedRow <- dfCountryToneForCountryId.collect()) {\n            // performs update (delete + insert)\n            //            println(\"case 6\")\n\n            val idToDelete = notEndedRow.getInt(0)\n            deleteRow(\"country_tone\", idToDelete);\n\n            val newRecord = Seq(\n                (notEndedRow.getDate(1),\n                        notEndedRow.getDate(2),\n                        notEndedRow.getDate(6), // update end_date = lastPublishedDate\n                        notEndedRow.getInt(4),\n                        notEndedRow.getString(5),\n                        notEndedRow.getDate(6),\n                        notEndedRow.getString(7))\n            ).toDF(\"related_month\", \"start_date\", \"end_date\", \"articles_number\", \"mood\", \"last_published_date\", \"country_id\")\n            writeDataFrame(newRecord.toDF, \"country_tone\", SaveMode.Append)\n        }\n\n        // new record\n        val newRecord = Seq(\n            (publishedDate,\n                    publishedDate,\n                    1,\n                    articleMood,\n                    publishedDate,\n                    countryId)\n        ).toDF(\"related_month\", \"start_date\", \"articles_number\", \"mood\", \"last_published_date\", \"country_id\")\n        writeDataFrame(newRecord.toDF, \"country_tone\", SaveMode.Append)\n    }\n}\n",
    "user": "anonymous",
-   "dateUpdated": "2020-01-20T14:31:53+0000",
+   "dateUpdated": "2020-01-20T14:59:23+0000",
    "config": {},
    "settings": {
     "params": {},
@@ -228,18 +228,18 @@
     ]
    },
    "apps": [],
-   "jobName": "paragraph_1579530701607_-672546984",
-   "id": "20200120-143141_993586556",
-   "dateCreated": "2020-01-20T14:31:41+0000",
-   "dateStarted": "2020-01-20T14:31:53+0000",
-   "dateFinished": "2020-01-20T14:32:51+0000",
+   "jobName": "paragraph_1579532351087_616137426",
+   "id": "20200120-145911_1081519468",
+   "dateCreated": "2020-01-20T14:59:11+0000",
+   "dateStarted": "2020-01-20T14:59:23+0000",
+   "dateFinished": "2020-01-20T15:00:28+0000",
    "status": "FINISHED",
    "progressUpdateIntervalMs": 500.0
   },
   {
    "text": "%spark\n\n\nval sqlQueryCountry =\n    \"\"\"(SELECT * FROM (SELECT c.id, c.name FROM country c\n                            ) country_prep) AS country\"\"\"\nval columnNamesCountry = Seq(\"id\", \"name\")\n\nval dfAllCountries = getDataFrame(sqlQueryCountry, columnNamesCountry)\n\nprintQueryResultsAsTable(dfAllCountries)\n",
    "user": "anonymous",
-   "dateUpdated": "2020-01-20T14:31:55+0000",
+   "dateUpdated": "2020-01-20T14:59:25+0000",
    "config": {},
    "settings": {
     "params": {},
@@ -259,18 +259,18 @@
     ]
    },
    "apps": [],
-   "jobName": "paragraph_1579530701627_-667929997",
-   "id": "20200120-143141_1464816687",
-   "dateCreated": "2020-01-20T14:31:41+0000",
-   "dateStarted": "2020-01-20T14:31:55+0000",
-   "dateFinished": "2020-01-20T14:32:54+0000",
+   "jobName": "paragraph_1579532351128_709631409",
+   "id": "20200120-145911_142886316",
+   "dateCreated": "2020-01-20T14:59:11+0000",
+   "dateStarted": "2020-01-20T14:59:25+0000",
+   "dateFinished": "2020-01-20T15:00:31+0000",
    "status": "FINISHED",
    "progressUpdateIntervalMs": 500.0
   },
   {
    "text": "%spark\n\nvar countryToPositiveAndNegativeArticlesMap = collection.mutable.Map[String, Tuple3[Int, Int, String]]()\n\nfor (row <- dfAllCountries.collect) {\n    countryToPositiveAndNegativeArticlesMap += (row.getString(0) -> Tuple3(0, 0, \"\"))\n}\n\nval columnNamesCountryToneForCountryIdAndDateWithCountryName = Seq(\"id\", \"related_month\", \"start_date\", \"end_date\", \"articles_number\", \"mood\",\n    \"last_published_date\", \"country_id\", \"load_date\", \"name\")\n\ncountryToPositiveAndNegativeArticlesMap.foreach(x => {\n    // find country_tone for this country for this month\n    var countryId = x._1\n    val sqlQueryForCountryToneGivenCountryIdAndCurrentMonth =\n        f\"\"\"(SELECT * FROM(SELECT ct.id, ct.related_month, ct.start_date, ct.end_date, ct.articles_number, \n            ct.mood, ct.last_published_date, ct.country_id, ct.load_date, c.name FROM country_tone ct\n              JOIN country c on c.id = ct.country_id\n              WHERE country_id = '$countryId'\n              AND YEAR(related_month) = YEAR(now())\n              AND MONTH(related_month) = MONTH(now())\n              ) joined_country_tone_for_countryid_and_date) AS country_tone_for_countryid_and_date \"\"\"\n    val dfCountryToneForCountryIdAndCurrentMonth = getDataFrame(sqlQueryForCountryToneGivenCountryIdAndCurrentMonth, columnNamesCountryToneForCountryIdAndDateWithCountryName)\n\n    for (row <- dfCountryToneForCountryIdAndCurrentMonth.collect) {\n        val mood = row.getString(5)\n        val articleCount = row.getInt(4)\n        val name = row.getString(9)\n\n        if (mood == \"positive\") {\n            countryToPositiveAndNegativeArticlesMap.update((x._1), Tuple3(countryToPositiveAndNegativeArticlesMap(x._1)._1 + articleCount,\n                countryToPositiveAndNegativeArticlesMap(x._1)._2, name))\n        } else {\n            countryToPositiveAndNegativeArticlesMap.update((x._1), Tuple3(countryToPositiveAndNegativeArticlesMap(x._1)._1,\n                countryToPositiveAndNegativeArticlesMap(x._1)._2 + articleCount, name))\n        }\n    }\n})\n\n\n",
    "user": "anonymous",
-   "dateUpdated": "2020-01-20T14:32:52+0000",
+   "dateUpdated": "2020-01-20T15:00:29+0000",
    "config": {},
    "settings": {
     "params": {},
@@ -286,24 +286,19 @@
     ]
    },
    "apps": [],
-   "jobName": "paragraph_1579530701656_-680626711",
-   "id": "20200120-143141_245634459",
-   "dateCreated": "2020-01-20T14:31:41+0000",
-   "dateStarted": "2020-01-20T14:32:52+0000",
-   "dateFinished": "2020-01-20T14:33:19+0000",
+   "jobName": "paragraph_1579532351180_677312501",
+   "id": "20200120-145911_1060774392",
+   "dateCreated": "2020-01-20T14:59:11+0000",
+   "dateStarted": "2020-01-20T15:00:29+0000",
+   "dateFinished": "2020-01-20T15:00:48+0000",
    "status": "FINISHED",
    "progressUpdateIntervalMs": 500.0
   },
   {
    "text": "%spark\n\nvar positiveCountriesToRatioMap = collection.mutable.Map[String, Tuple2[Double, String]]()\ncountryToPositiveAndNegativeArticlesMap.foreach(x => {\n    if (x._2._1 > x._2._2) {\n        val ratio = (1.0 + x._2._1) / (1.0 + x._2._2)\n        positiveCountriesToRatioMap += (x._1 -> Tuple2(ratio, x._2._3))\n    }\n})\n",
    "user": "anonymous",
-   "dateUpdated": "2020-01-20T14:36:27+0000",
-   "config": {
-    "colWidth": 12.0,
-    "enabled": true,
-    "results": {},
-    "editorSetting": {}
-   },
+   "dateUpdated": "2020-01-20T15:00:31+0000",
+   "config": {},
    "settings": {
     "params": {},
     "forms": {}
@@ -318,22 +313,67 @@
     ]
    },
    "apps": [],
-   "jobName": "paragraph_1579530973040_-1439180808",
-   "id": "20200120-143613_1447060743",
-   "dateCreated": "2020-01-20T14:36:13+0000",
-   "dateStarted": "2020-01-20T14:36:13+0000",
-   "dateFinished": "2020-01-20T14:36:14+0000",
+   "jobName": "paragraph_1579532351224_672695514",
+   "id": "20200120-145911_1281509464",
+   "dateCreated": "2020-01-20T14:59:11+0000",
+   "dateStarted": "2020-01-20T15:00:31+0000",
+   "dateFinished": "2020-01-20T15:00:49+0000",
    "status": "FINISHED",
    "progressUpdateIntervalMs": 500.0
   },
   {
    "text": "%spark\n// Krok 2.\nvar positiveCountriesToRatioEarliestDateMap = collection.mutable.Map[String, Tuple3[String, Int, java.sql.Date]]()\npositiveCountriesToRatioMap.foreach(x => {\n    positiveCountriesToRatioEarliestDateMap += (x._1 -> Tuple3(x._2._2, 0, new java.sql.Date(new java.util.Date().getTime())))\n})\n\n\npositiveCountriesToRatioMap.foreach(x => {\n    var countryId = x._1\n\n    val sqlQueryForCountryToneGivenCountryIdAndBeforeCurrentMonth =\n        f\"\"\"(SELECT * FROM(SELECT ct.id, ct.related_month, ct.start_date, ct.end_date, ct.articles_number, ct.mood, ct.last_published_date, ct.country_id, ct.load_date FROM country_tone ct\n              WHERE country_id = '$countryId'\n                AND (YEAR(related_month) <= YEAR(DATE_ADD(NOW(), INTERVAL -1 YEAR))\n                OR (YEAR(related_month) = YEAR(DATE_ADD(NOW(), INTERVAL -1 MONTH))\n                AND MONTH(related_month) <= MONTH(DATE_ADD(NOW(), INTERVAL -1 MONTH))))\n              ) joined_country_tone_for_countryid_and_date) AS country_tone_for_countryid_and_date \"\"\"\n    //                AND (YEAR(related_month) <= YEAR(DATE_ADD(NOW(), INTERVAL -1 YEAR))\n    //                OR (YEAR(related_month) = YEAR(DATE_ADD(NOW(), INTERVAL -1 MONTH))\n    //                AND MONTH(related_month) <= MONTH(DATE_ADD(NOW(), INTERVAL -1 MONTH))))\n\n    val dfCountryToneForCountryIdAndBeforeCurrentMonth = getDataFrame(sqlQueryForCountryToneGivenCountryIdAndBeforeCurrentMonth,\n        columnNamesCountryToneForCountryIdAndDate).orderBy(desc(\"start_date\")).orderBy(desc(\"mood\"))\n\n    var positive = true\n    for (row <- dfCountryToneForCountryIdAndBeforeCurrentMonth.collect) {\n        if (positive) {\n            val startDate = row.getDate(2)\n            val articleCount = row.getInt(4)\n            val mood = row.getString(5)\n\n            if (mood == \"positive\") {\n                positiveCountriesToRatioEarliestDateMap.update((x._1),\n                    Tuple3(positiveCountriesToRatioEarliestDateMap(x._1)._1,\n                        positiveCountriesToRatioEarliestDateMap(x._1)._2 + articleCount,\n                        startDate))\n            }\n            else {\n                positive = false\n            }\n        }\n    }\n})\n\nval resultList = positiveCountriesToRatioEarliestDateMap.values.toList\nval resultDataframe = resultList.toDF(\"country\", \"articles_number\", \"start_date\")\n\nprintQueryResultsAsTable(resultDataframe)\n",
    "user": "anonymous",
-   "dateUpdated": "2020-01-20T14:56:03+0000",
+   "dateUpdated": "2020-01-20T15:03:12+0000",
    "config": {
     "colWidth": 12.0,
     "enabled": true,
-    "results": {},
+    "results": {
+     "1": {
+      "graph": {
+       "mode": "multiBarChart",
+       "height": 300.0,
+       "optionOpen": true,
+       "setting": {
+        "scatterChart": {
+         "xAxis": {
+          "name": "start_date",
+          "index": 2.0,
+          "aggr": "sum"
+         },
+         "yAxis": {
+          "name": "articles_number",
+          "index": 1.0,
+          "aggr": "sum"
+         }
+        },
+        "multiBarChart": {}
+       },
+       "commonSetting": {},
+       "keys": [
+        {
+         "name": "country",
+         "index": 0.0,
+         "aggr": "sum"
+        },
+        {
+         "name": "start_date",
+         "index": 2.0,
+         "aggr": "sum"
+        }
+       ],
+       "groups": [],
+       "values": [
+        {
+         "name": "articles_number",
+         "index": 1.0,
+         "aggr": "sum"
+        }
+       ]
+      },
+      "helium": {}
+     }
+    },
     "editorSetting": {}
    },
    "settings": {
@@ -354,11 +394,11 @@
     ]
    },
    "apps": [],
-   "jobName": "paragraph_1579532151258_2107749260",
-   "id": "20200120-145551_1278816644",
-   "dateCreated": "2020-01-20T14:55:51+0000",
-   "dateStarted": "2020-01-20T14:55:51+0000",
-   "dateFinished": "2020-01-20T14:56:01+0000",
+   "jobName": "paragraph_1579532351276_738872325",
+   "id": "20200120-145911_1406668906",
+   "dateCreated": "2020-01-20T14:59:11+0000",
+   "dateStarted": "2020-01-20T15:00:49+0000",
+   "dateFinished": "2020-01-20T15:00:57+0000",
    "status": "FINISHED",
    "progressUpdateIntervalMs": 500.0
   }
